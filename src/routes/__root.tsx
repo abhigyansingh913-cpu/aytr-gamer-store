@@ -9,7 +9,15 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import "@fontsource/outfit/400.css";
+import "@fontsource/outfit/600.css";
+import "@fontsource/outfit/700.css";
+import "@fontsource/figtree/400.css";
+import "@fontsource/figtree/500.css";
+import "@fontsource/figtree/600.css";
+
 import appCss from "../styles.css?url";
+import { Toaster } from "../components/ui/sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as CategoriesRouteImport } from './routes/categories'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIdRouteImport } from './routes/app.$id'
 
@@ -30,6 +31,11 @@ const CategoriesRoute = CategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,6 +49,7 @@ const AppIdRoute = AppIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/categories': typeof CategoriesRoute
   '/favorites': typeof FavoritesRoute
   '/settings': typeof SettingsRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/categories': typeof CategoriesRoute
   '/favorites': typeof FavoritesRoute
   '/settings': typeof SettingsRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
   '/categories': typeof CategoriesRoute
   '/favorites': typeof FavoritesRoute
   '/settings': typeof SettingsRoute
@@ -65,14 +74,28 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/categories' | '/favorites' | '/settings' | '/app/$id'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/categories'
+    | '/favorites'
+    | '/settings'
+    | '/app/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/categories' | '/favorites' | '/settings' | '/app/$id'
-  id: '__root__' | '/' | '/categories' | '/favorites' | '/settings' | '/app/$id'
+  to: '/' | '/admin' | '/categories' | '/favorites' | '/settings' | '/app/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/categories'
+    | '/favorites'
+    | '/settings'
+    | '/app/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
   CategoriesRoute: typeof CategoriesRoute
   FavoritesRoute: typeof FavoritesRoute
   SettingsRoute: typeof SettingsRoute
@@ -102,6 +125,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CategoriesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -121,6 +151,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
   CategoriesRoute: CategoriesRoute,
   FavoritesRoute: FavoritesRoute,
   SettingsRoute: SettingsRoute,
