@@ -84,15 +84,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover",
+      },
+      { title: "AYT R STORE — Premium Minecraft Mods & Add-ons" },
+      {
+        name: "description",
+        content:
+          "AYT R STORE — a premium hub for Minecraft texture packs, skins, add-ons and templates. Fast, secure downloads with a luxurious golden UI.",
+      },
+      { name: "author", content: "AYT R STORE" },
+      { name: "theme-color", content: "#F5D67B" },
+      { property: "og:title", content: "AYT R STORE — Premium Minecraft Mods & Add-ons" },
+      {
+        property: "og:description",
+        content:
+          "Discover premium Minecraft texture packs, skins, add-ons and templates in one golden store.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
