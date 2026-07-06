@@ -42,7 +42,6 @@ function AdminPage() {
 function LoginForm() {
   const { login } = useAdminAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -50,10 +49,10 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(email.trim(), password);
+      await login(password);
       toast.success("Welcome back, admin");
     } catch {
-      toast.error("Invalid credentials");
+      toast.error("Wrong password");
     } finally {
       setLoading(false);
     }
