@@ -1,7 +1,7 @@
 export const CATEGORIES = [
   "Texture Packs",
   "Skins",
-  "MC Add-ons",
+  "APKs",
   "Add-ons",
   "MC Templates",
 ] as const;
