@@ -1,31 +1,44 @@
 import { useEffect, useState } from "react";
-import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut,
-  type User,
-} from "firebase/auth";
-import { auth } from "@/lib/firebase";
+
+// ⚠️ Simple password-only admin gate.
+// Change this value to update your admin password.
+const ADMIN_PASSWORD = "Broyougotmad";
+const STORAGE_KEY = "aytr-admin-unlocked";
+
+let listeners: Array<() => void> = [];
+const notify = () => listeners.forEach((l) => l());
+
+function readUnlocked() {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(STORAGE_KEY) === "yes";
+}
 
 export function useAdminAuth() {
-  const [user, setUser] = useState<User | null>(null);
+  const [unlocked, setUnlocked] = useState(false);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setReady(true);
-    });
-    return () => unsub();
+    setUnlocked(readUnlocked());
+    setReady(true);
+    const update = () => setUnlocked(readUnlocked());
+    listeners.push(update);
+    return () => {
+      listeners = listeners.filter((l) => l !== update);
+    };
   }, []);
 
-  const login = async (email: string, password: string) => {
-    await signInWithEmailAndPassword(auth, email, password);
+  const login = async (password: string) => {
+    if (password !== ADMIN_PASSWORD) {
+      throw new Error("Invalid password");
+    }
+    localStorage.setItem(STORAGE_KEY, "yes");
+    notify();
   };
 
   const logout = async () => {
-    await signOut(auth);
+    localStorage.removeItem(STORAGE_KEY);
+    notify();
   };
 
-  return { user, ready, isAuthenticated: !!user, login, logout };
+  return { ready, isAuthenticated: unlocked, login, logout };
 }
