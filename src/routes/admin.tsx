@@ -42,7 +42,6 @@ function AdminPage() {
 function LoginForm() {
   const { login } = useAdminAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -50,10 +49,10 @@ function LoginForm() {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(email.trim(), password);
+      await login(password);
       toast.success("Welcome back, admin");
     } catch {
-      toast.error("Invalid credentials");
+      toast.error("Wrong password");
     } finally {
       setLoading(false);
     }
@@ -82,17 +81,8 @@ function LoginForm() {
           </p>
         </div>
 
-        <Field label="Email">
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="admin@aytrstore.app"
-            className="glass w-full rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--gold)]"
-          />
-        </Field>
         <Field label="Password">
+
           <input
             type="password"
             required
