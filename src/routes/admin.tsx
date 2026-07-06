@@ -81,17 +81,8 @@ function LoginForm() {
           </p>
         </div>
 
-        <Field label="Email">
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="admin@aytrstore.app"
-            className="glass w-full rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--gold)]"
-          />
-        </Field>
         <Field label="Password">
+
           <input
             type="password"
             required
