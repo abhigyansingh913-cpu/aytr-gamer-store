@@ -44,6 +44,18 @@ export function Splash({ onFinish }: { onFinish: () => void }) {
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">Premium mods & add-ons</p>
 
+        <div className="mt-6 max-w-xs text-center animate-float-up" style={{ animationDelay: "0.2s" }}>
+          <h2 className="font-display text-lg font-bold leading-snug tracking-tight text-foreground">
+            WELCOME TO OUR PREMIUM STORE OF MINECRAFT MODS AND APKs
+          </h2>
+          <p className="mt-3 text-sm font-medium text-[var(--gold-dark)]">
+            Also enjoy all mods
+          </p>
+          <p className="mt-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            THANKS FOR DOWNLOADING
+          </p>
+        </div>
+
         <div className="relative mt-8 h-2 w-56 overflow-hidden rounded-full bg-[color-mix(in_oklab,var(--gold)_18%,white)]">
           <div
             className="h-full rounded-full bg-gradient-gold transition-[width] duration-100 ease-out"
