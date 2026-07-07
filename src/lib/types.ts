@@ -18,6 +18,7 @@ export interface Mod {
   downloadLink: string;
   version: string;
   size: string;
+  youtubeUrl?: string;
   createdAt: number;
 }
 

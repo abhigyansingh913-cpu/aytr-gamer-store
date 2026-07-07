@@ -13,6 +13,15 @@ function isSafeUrl(url: string) {
   return /^https?:\/\//i.test(url.trim());
 }
 
+function getYoutubeId(url: string): string | null {
+  const match = url
+    .trim()
+    .match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/,
+    );
+  return match ? match[1] : null;
+}
+
 function DetailPage() {
   const { id } = Route.useParams();
   const { mod, loading } = useMod(id);
@@ -108,6 +117,22 @@ function DetailPage() {
                 className="glass h-40 w-64 shrink-0 snap-start rounded-2xl object-cover p-1"
               />
             ))}
+          </div>
+        </div>
+      )}
+
+      {mod.youtubeUrl && getYoutubeId(mod.youtubeUrl) && (
+        <div className="animate-float-up mt-4">
+          <h2 className="mb-2 px-1 font-display text-base font-semibold">Video</h2>
+          <div className="glass overflow-hidden rounded-2xl p-1">
+            <iframe
+              src={`https://www.youtube.com/embed/${getYoutubeId(mod.youtubeUrl)}`}
+              title={`${mod.title} video`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              loading="lazy"
+              className="aspect-video w-full rounded-xl"
+            />
           </div>
         </div>
       )}

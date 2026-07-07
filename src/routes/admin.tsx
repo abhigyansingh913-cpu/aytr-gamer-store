@@ -119,6 +119,12 @@ const modSchema = z.object({
   version: z.string().trim().min(1, "Version required").max(30),
   size: z.string().trim().min(1, "Size required").max(30),
   screenshots: z.array(z.string().url()).max(10),
+  youtubeUrl: z
+    .string()
+    .trim()
+    .url("Valid YouTube URL required")
+    .max(600)
+    .optional(),
 });
 
 const empty = {
@@ -129,7 +135,9 @@ const empty = {
   downloadLink: "",
   version: "",
   size: "",
-  screenshotsText: "",
+  screenshot1: "",
+  screenshot2: "",
+  youtubeUrl: "",
 };
 
 function Dashboard() {
@@ -144,8 +152,7 @@ function Dashboard() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const screenshots = form.screenshotsText
-      .split(/[\n,]/)
+    const screenshots = [form.screenshot1, form.screenshot2]
       .map((s) => s.trim())
       .filter(Boolean);
 
@@ -158,6 +165,7 @@ function Dashboard() {
       version: form.version,
       size: form.size,
       screenshots,
+      youtubeUrl: form.youtubeUrl.trim() || undefined,
     });
 
     if (!parsed.success) {
@@ -253,14 +261,16 @@ function Dashboard() {
           <Input value={form.downloadLink} onChange={(v) => set("downloadLink", v)} placeholder="https://…/download" />
         </Field>
 
-        <Field label="Screenshot URLs (one per line or comma-separated)">
-          <textarea
-            value={form.screenshotsText}
-            onChange={(e) => set("screenshotsText", e.target.value)}
-            rows={3}
-            placeholder="https://…/1.jpg&#10;https://…/2.jpg"
-            className="glass w-full rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--gold)]"
-          />
+        <Field label="Screenshot URL 1">
+          <Input value={form.screenshot1} onChange={(v) => set("screenshot1", v)} placeholder="https://…/1.jpg" />
+        </Field>
+
+        <Field label="Screenshot URL 2">
+          <Input value={form.screenshot2} onChange={(v) => set("screenshot2", v)} placeholder="https://…/2.jpg" />
+        </Field>
+
+        <Field label="YouTube video link (optional)">
+          <Input value={form.youtubeUrl} onChange={(v) => set("youtubeUrl", v)} placeholder="https://youtube.com/watch?v=…" />
         </Field>
 
         <button
