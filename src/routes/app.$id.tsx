@@ -3,7 +3,7 @@ import { ArrowLeft, Download, Heart, Loader2, Tag, HardDrive, Boxes } from "luci
 import { StoreShell } from "@/components/store/StoreShell";
 import { useMod } from "@/hooks/use-mods";
 import { useFavorites } from "@/hooks/use-favorites";
-import { cn } from "@/lib/utils";
+import { cn, cleanImageUrl } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/$id")({
   component: DetailPage,
