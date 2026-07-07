@@ -17,7 +17,7 @@ import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useMods } from "@/hooks/use-mods";
 import { db } from "@/lib/firebase";
 import { CATEGORIES } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, cleanImageUrl } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
