@@ -121,6 +121,22 @@ function DetailPage() {
         </div>
       )}
 
+      {mod.youtubeUrl && getYoutubeId(mod.youtubeUrl) && (
+        <div className="animate-float-up mt-4">
+          <h2 className="mb-2 px-1 font-display text-base font-semibold">Video</h2>
+          <div className="glass overflow-hidden rounded-2xl p-1">
+            <iframe
+              src={`https://www.youtube.com/embed/${getYoutubeId(mod.youtubeUrl)}`}
+              title={`${mod.title} video`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              loading="lazy"
+              className="aspect-video w-full rounded-xl"
+            />
+          </div>
+        </div>
+      )}
+
       <button
         onClick={handleDownload}
         disabled={!isSafeUrl(mod.downloadLink)}
