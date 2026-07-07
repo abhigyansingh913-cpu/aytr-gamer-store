@@ -111,7 +111,7 @@ function DetailPage() {
             {mod.screenshots.map((src, i) => (
               <img
                 key={i}
-                src={src}
+                src={cleanImageUrl(src)}
                 alt={`${mod.title} screenshot ${i + 1}`}
                 loading="lazy"
                 className="glass h-40 w-64 shrink-0 snap-start rounded-2xl object-cover p-1"
