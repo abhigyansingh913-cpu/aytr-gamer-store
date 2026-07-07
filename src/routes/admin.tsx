@@ -119,6 +119,12 @@ const modSchema = z.object({
   version: z.string().trim().min(1, "Version required").max(30),
   size: z.string().trim().min(1, "Size required").max(30),
   screenshots: z.array(z.string().url()).max(10),
+  youtubeUrl: z
+    .string()
+    .trim()
+    .url("Valid YouTube URL required")
+    .max(600)
+    .optional(),
 });
 
 const empty = {
@@ -129,7 +135,9 @@ const empty = {
   downloadLink: "",
   version: "",
   size: "",
-  screenshotsText: "",
+  screenshot1: "",
+  screenshot2: "",
+  youtubeUrl: "",
 };
 
 function Dashboard() {
