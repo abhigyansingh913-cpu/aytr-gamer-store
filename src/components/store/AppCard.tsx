@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Heart, Download } from "lucide-react";
 import type { Mod } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, cleanImageUrl } from "@/lib/utils";
 
 export function AppCard({
   mod,
