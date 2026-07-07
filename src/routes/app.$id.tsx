@@ -73,7 +73,7 @@ function DetailPage() {
 
       <div className="animate-float-up relative overflow-hidden rounded-2xl">
         <img
-          src={mod.imageUrl}
+          src={cleanImageUrl(mod.imageUrl)}
           alt={mod.title}
           className="aspect-video w-full object-cover"
         />
