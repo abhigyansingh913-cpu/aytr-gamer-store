@@ -17,7 +17,7 @@ import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useMods } from "@/hooks/use-mods";
 import { db } from "@/lib/firebase";
 import { CATEGORIES } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, cleanImageUrl } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -153,15 +153,15 @@ function Dashboard() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const screenshots = [form.screenshot1, form.screenshot2]
-      .map((s) => s.trim())
+      .map((s) => cleanImageUrl(s))
       .filter(Boolean);
 
     const parsed = modSchema.safeParse({
       title: form.title,
       description: form.description,
       category: form.category,
-      imageUrl: form.imageUrl,
-      downloadLink: form.downloadLink,
+      imageUrl: cleanImageUrl(form.imageUrl),
+      downloadLink: form.downloadLink.trim(),
       version: form.version,
       size: form.size,
       screenshots,

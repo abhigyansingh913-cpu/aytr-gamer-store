@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Heart, Download } from "lucide-react";
 import type { Mod } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, cleanImageUrl } from "@/lib/utils";
 
 export function AppCard({
   mod,
@@ -25,7 +25,7 @@ export function AppCard({
         className="relative block aspect-square overflow-hidden rounded-xl"
       >
         <img
-          src={mod.imageUrl}
+          src={cleanImageUrl(mod.imageUrl)}
           alt={mod.title}
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"

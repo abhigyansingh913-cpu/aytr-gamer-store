@@ -3,7 +3,7 @@ import { ArrowLeft, Download, Heart, Loader2, Tag, HardDrive, Boxes } from "luci
 import { StoreShell } from "@/components/store/StoreShell";
 import { useMod } from "@/hooks/use-mods";
 import { useFavorites } from "@/hooks/use-favorites";
-import { cn } from "@/lib/utils";
+import { cn, cleanImageUrl } from "@/lib/utils";
 
 export const Route = createFileRoute("/app/$id")({
   component: DetailPage,
@@ -73,7 +73,7 @@ function DetailPage() {
 
       <div className="animate-float-up relative overflow-hidden rounded-2xl">
         <img
-          src={mod.imageUrl}
+          src={cleanImageUrl(mod.imageUrl)}
           alt={mod.title}
           className="aspect-video w-full object-cover"
         />
@@ -111,7 +111,7 @@ function DetailPage() {
             {mod.screenshots.map((src, i) => (
               <img
                 key={i}
-                src={src}
+                src={cleanImageUrl(src)}
                 alt={`${mod.title} screenshot ${i + 1}`}
                 loading="lazy"
                 className="glass h-40 w-64 shrink-0 snap-start rounded-2xl object-cover p-1"
