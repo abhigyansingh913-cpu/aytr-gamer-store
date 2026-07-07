@@ -152,8 +152,7 @@ function Dashboard() {
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const screenshots = form.screenshotsText
-      .split(/[\n,]/)
+    const screenshots = [form.screenshot1, form.screenshot2]
       .map((s) => s.trim())
       .filter(Boolean);
 
@@ -166,6 +165,7 @@ function Dashboard() {
       version: form.version,
       size: form.size,
       screenshots,
+      youtubeUrl: form.youtubeUrl.trim() || undefined,
     });
 
     if (!parsed.success) {
