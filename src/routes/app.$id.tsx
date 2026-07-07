@@ -13,6 +13,15 @@ function isSafeUrl(url: string) {
   return /^https?:\/\//i.test(url.trim());
 }
 
+function getYoutubeId(url: string): string | null {
+  const match = url
+    .trim()
+    .match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/,
+    );
+  return match ? match[1] : null;
+}
+
 function DetailPage() {
   const { id } = Route.useParams();
   const { mod, loading } = useMod(id);
