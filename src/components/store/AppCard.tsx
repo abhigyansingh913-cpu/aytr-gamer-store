@@ -25,7 +25,7 @@ export function AppCard({
         className="relative block aspect-square overflow-hidden rounded-xl"
       >
         <img
-          src={mod.imageUrl}
+          src={cleanImageUrl(mod.imageUrl)}
           alt={mod.title}
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
