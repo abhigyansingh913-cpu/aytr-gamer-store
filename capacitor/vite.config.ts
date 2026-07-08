@@ -7,9 +7,10 @@ import { resolve } from "path";
 
 export default defineConfig({
   root: resolve("."),
+  base: "./",
   build: {
-    outDir: resolve("dist/capacitor"),
-    emptyOutDir: true,
+    outDir: resolve("dist"),
+    emptyOutDir: false,
     rollupOptions: {
       input: resolve("capacitor/index.html"),
     },
