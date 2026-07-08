@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { ArrowLeft, Download, Heart, Loader2, Tag, HardDrive, Boxes } from "lucide-react";
 import { StoreShell } from "@/components/store/StoreShell";
+import { DownloadAdGate } from "@/components/store/DownloadAdGate";
 import { useMod } from "@/hooks/use-mods";
 import { useFavorites } from "@/hooks/use-favorites";
 import { cn, cleanImageUrl } from "@/lib/utils";
@@ -27,6 +29,8 @@ function DetailPage() {
   const { mod, loading } = useMod(id);
   const { isFavorite, toggleFavorite } = useFavorites();
   const navigate = useNavigate();
+  const [gateOpen, setGateOpen] = useState(false);
+
 
   if (loading) {
     return (
