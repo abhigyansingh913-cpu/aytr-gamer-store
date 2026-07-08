@@ -12,7 +12,7 @@ export default defineConfig({
     outDir: resolve("capacitor-build"),
     emptyOutDir: false,
     rollupOptions: {
-      input: resolve("capacitor/index.html"),
+      input: resolve("capacitor.html"),
     },
   },
   plugins: [tailwindcss(), react(), TanStackRouterVite(), tsconfigPaths()],
