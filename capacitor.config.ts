@@ -3,7 +3,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "com.aytr.store",
   appName: "AYT R STORE",
-  webDir: "capacitor-build/capacitor/capacitor",
+  webDir: "capacitor-build",
   server: {
     androidScheme: "https",
     cleartext: false,
