@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { ADSENSE_CLIENT, ADSENSE_ENABLED } from "@/lib/ads-config";
 import { cn } from "@/lib/utils";
+import { useHydrated } from "@/hooks/use-hydrated";
 
 declare global {
   interface Window {
