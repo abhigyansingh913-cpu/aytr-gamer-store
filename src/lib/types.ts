@@ -23,3 +23,11 @@ export interface Mod {
 }
 
 export type ModInput = Omit<Mod, "id" | "createdAt">;
+
+export interface Ad {
+  id: string;
+  imageUrl: string;
+  linkUrl: string;
+  active: boolean;
+  createdAt: number;
+}

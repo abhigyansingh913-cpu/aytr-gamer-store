@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { Loader2, PackageOpen } from "lucide-react";
 import { StoreShell } from "@/components/store/StoreShell";
 import { AppCard } from "@/components/store/AppCard";
+import { AdBanner } from "@/components/store/AdBanner";
+import { AdSenseUnit } from "@/components/store/AdSenseUnit";
 import { Splash } from "@/components/store/Splash";
 import { useMods } from "@/hooks/use-mods";
 import { useFavorites } from "@/hooks/use-favorites";
@@ -39,6 +41,13 @@ function Index() {
         </p>
       </section>
 
+      <div className="animate-float-up mb-5 space-y-3">
+        <AdBanner />
+        <AdSenseUnit className="min-h-[90px]" />
+      </div>
+
+
+
       {loading ? (
         <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
           <Loader2 className="h-8 w-8 animate-spin text-[var(--gold-dark)]" />
@@ -57,6 +66,13 @@ function Index() {
               onToggleFavorite={toggleFavorite}
             />
           ))}
+        </div>
+      )}
+
+      {mods.length > 0 && (
+        <div className="animate-float-up mt-6 space-y-3">
+          <AdBanner />
+          <AdSenseUnit className="min-h-[90px]" />
         </div>
       )}
     </StoreShell>

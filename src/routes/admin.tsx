@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { push, ref, remove } from "firebase/database";
+import { push, ref, remove, update } from "firebase/database";
 import { z } from "zod";
 import { toast } from "sonner";
 import {
@@ -11,10 +11,14 @@ import {
   Plus,
   Trash2,
   ShieldCheck,
+  Megaphone,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { StoreShell } from "@/components/store/StoreShell";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useMods } from "@/hooks/use-mods";
+import { useAds } from "@/hooks/use-ads";
 import { db } from "@/lib/firebase";
 import { CATEGORIES } from "@/lib/types";
 import { cn, cleanImageUrl } from "@/lib/utils";
@@ -290,7 +294,7 @@ function Dashboard() {
         <div className="flex flex-col gap-2">
           {mods.map((mod) => (
             <div key={mod.id} className="glass flex items-center gap-3 rounded-2xl p-2.5">
-              <img src={mod.imageUrl} alt={mod.title} className="h-12 w-12 rounded-lg object-cover" />
+              <img src={cleanImageUrl(mod.imageUrl)} alt={mod.title} className="h-12 w-12 rounded-lg object-cover" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{mod.title}</p>
                 <p className="text-xs text-muted-foreground">
@@ -313,9 +317,145 @@ function Dashboard() {
           )}
         </div>
       </div>
+
+      <AdsManager />
     </StoreShell>
   );
 }
+
+function AdsManager() {
+  const { ads } = useAds();
+  const [image, setImage] = useState("");
+  const [link, setLink] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const addBanner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const imageUrl = cleanImageUrl(image);
+    const linkUrl = link.trim();
+
+    if (!/^https?:\/\//i.test(imageUrl)) {
+      toast.error("Valid banner image URL required");
+      return;
+    }
+    if (linkUrl && !/^https?:\/\//i.test(linkUrl)) {
+      toast.error("Link must start with http(s)://");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await push(ref(db, "ads"), {
+        imageUrl,
+        linkUrl,
+        active: true,
+        createdAt: Date.now(),
+      });
+      toast.success("Banner added");
+      setImage("");
+      setLink("");
+    } catch {
+      toast.error("Failed to add banner");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggle = async (id: string, active: boolean) => {
+    try {
+      await update(ref(db, `ads/${id}`), { active: !active });
+    } catch {
+      toast.error("Failed to update banner");
+    }
+  };
+
+  const del = async (id: string) => {
+    try {
+      await remove(ref(db, `ads/${id}`));
+      toast.success("Banner deleted");
+    } catch {
+      toast.error("Failed to delete banner");
+    }
+  };
+
+  return (
+    <div className="mt-8">
+      <form onSubmit={addBanner} className="glass animate-float-up rounded-2xl p-5">
+        <h2 className="mb-1 flex items-center gap-2 font-display text-lg font-bold">
+          <Megaphone className="h-5 w-5 text-[var(--gold-dark)]" /> Ads / Banners
+        </h2>
+        <p className="mb-4 text-xs text-muted-foreground">
+          Ye banners home page aur download se pehle dikhte hain.
+        </p>
+
+        <Field label="Banner image URL">
+          <Input value={image} onChange={setImage} placeholder="https://…/banner.jpg" />
+        </Field>
+
+        <Field label="Click link (optional)">
+          <Input value={link} onChange={setLink} placeholder="https://… (kahan le jaye)" />
+        </Field>
+
+        <button
+          type="submit"
+          disabled={saving}
+          className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-gold px-4 py-3 text-sm font-bold text-gold-foreground shadow-[var(--shadow-gold)] transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-60"
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+          Add banner
+        </button>
+      </form>
+
+      <div className="mt-4">
+        <h3 className="mb-2 px-1 font-display text-base font-semibold">
+          Banners ({ads.length})
+        </h3>
+        <div className="flex flex-col gap-2">
+          {ads.map((ad) => (
+            <div key={ad.id} className="glass flex items-center gap-3 rounded-2xl p-2.5">
+              <img
+                src={cleanImageUrl(ad.imageUrl)}
+                alt="Banner"
+                className={cn(
+                  "h-12 w-20 rounded-lg object-cover",
+                  !ad.active && "opacity-40",
+                )}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs text-muted-foreground">
+                  {ad.linkUrl || "No link"}
+                </p>
+                <p className="text-[11px] font-semibold">
+                  {ad.active ? "Active" : "Hidden"}
+                </p>
+              </div>
+              <button
+                onClick={() => toggle(ad.id, ad.active)}
+                aria-label="Toggle banner"
+                className="rounded-full p-2 text-[var(--gold-dark)] transition-colors hover:bg-[var(--gold)]/10"
+              >
+                {ad.active ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+              </button>
+              <button
+                onClick={() => del(ad.id)}
+                aria-label="Delete banner"
+                className="rounded-full p-2 text-destructive transition-colors hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+          {ads.length === 0 && (
+            <p className="glass rounded-2xl py-6 text-center text-sm text-muted-foreground">
+              No banners yet.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (

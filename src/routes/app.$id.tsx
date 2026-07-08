@@ -1,6 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { ArrowLeft, Download, Heart, Loader2, Tag, HardDrive, Boxes } from "lucide-react";
 import { StoreShell } from "@/components/store/StoreShell";
+import { DownloadAdGate } from "@/components/store/DownloadAdGate";
 import { useMod } from "@/hooks/use-mods";
 import { useFavorites } from "@/hooks/use-favorites";
 import { cn, cleanImageUrl } from "@/lib/utils";
@@ -27,6 +29,8 @@ function DetailPage() {
   const { mod, loading } = useMod(id);
   const { isFavorite, toggleFavorite } = useFavorites();
   const navigate = useNavigate();
+  const [gateOpen, setGateOpen] = useState(false);
+
 
   if (loading) {
     return (
@@ -58,7 +62,7 @@ function DetailPage() {
 
   const handleDownload = () => {
     if (isSafeUrl(mod.downloadLink)) {
-      window.open(mod.downloadLink, "_blank", "noopener,noreferrer");
+      setGateOpen(true);
     }
   };
 
@@ -145,6 +149,12 @@ function DetailPage() {
         <Download className="h-5 w-5" />
         Download {mod.size && `(${mod.size})`}
       </button>
+
+      <DownloadAdGate
+        open={gateOpen}
+        downloadUrl={mod.downloadLink}
+        onClose={() => setGateOpen(false)}
+      />
     </StoreShell>
   );
 }
