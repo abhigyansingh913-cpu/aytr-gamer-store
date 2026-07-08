@@ -294,7 +294,7 @@ function Dashboard() {
         <div className="flex flex-col gap-2">
           {mods.map((mod) => (
             <div key={mod.id} className="glass flex items-center gap-3 rounded-2xl p-2.5">
-              <img src={mod.imageUrl} alt={mod.title} className="h-12 w-12 rounded-lg object-cover" />
+              <img src={cleanImageUrl(mod.imageUrl)} alt={mod.title} className="h-12 w-12 rounded-lg object-cover" />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{mod.title}</p>
                 <p className="text-xs text-muted-foreground">
@@ -317,6 +317,8 @@ function Dashboard() {
           )}
         </div>
       </div>
+
+      <AdsManager />
     </StoreShell>
   );
 }
