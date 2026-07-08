@@ -20,19 +20,20 @@ export function AdSenseUnit({
   slot?: string;
   className?: string;
 }) {
+  const hydrated = useHydrated();
   const pushed = useRef(false);
 
   useEffect(() => {
-    if (!ADSENSE_ENABLED || pushed.current) return;
+    if (!hydrated || !ADSENSE_ENABLED || pushed.current) return;
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
       pushed.current = true;
     } catch {
       /* AdSense not ready yet */
     }
-  }, []);
+  }, [hydrated]);
 
-  if (!ADSENSE_ENABLED) return null;
+  if (!ADSENSE_ENABLED || !hydrated) return null;
 
   return (
     <ins
