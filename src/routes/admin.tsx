@@ -11,10 +11,14 @@ import {
   Plus,
   Trash2,
   ShieldCheck,
+  Megaphone,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { StoreShell } from "@/components/store/StoreShell";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useMods } from "@/hooks/use-mods";
+import { useAds } from "@/hooks/use-ads";
 import { db } from "@/lib/firebase";
 import { CATEGORIES } from "@/lib/types";
 import { cn, cleanImageUrl } from "@/lib/utils";
