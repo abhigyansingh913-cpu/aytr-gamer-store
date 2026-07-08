@@ -9,7 +9,7 @@ export default defineConfig({
   root: resolve("."),
   base: "./",
   build: {
-    outDir: resolve("dist"),
+    outDir: resolve("capacitor-build"),
     emptyOutDir: false,
     rollupOptions: {
       input: resolve("capacitor/index.html"),
