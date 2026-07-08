@@ -62,7 +62,7 @@ function DetailPage() {
 
   const handleDownload = () => {
     if (isSafeUrl(mod.downloadLink)) {
-      window.open(mod.downloadLink, "_blank", "noopener,noreferrer");
+      setGateOpen(true);
     }
   };
 
