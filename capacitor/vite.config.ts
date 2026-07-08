@@ -7,7 +7,7 @@ import { resolve } from "path";
 
 export default defineConfig({
   root: resolve("."),
-  base: "./",
+  base: "",
   build: {
     outDir: resolve("capacitor-build"),
     emptyOutDir: false,
