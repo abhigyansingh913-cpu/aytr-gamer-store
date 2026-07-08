@@ -149,6 +149,12 @@ function DetailPage() {
         <Download className="h-5 w-5" />
         Download {mod.size && `(${mod.size})`}
       </button>
+
+      <DownloadAdGate
+        open={gateOpen}
+        downloadUrl={mod.downloadLink}
+        onClose={() => setGateOpen(false)}
+      />
     </StoreShell>
   );
 }
