@@ -68,6 +68,13 @@ function Index() {
           ))}
         </div>
       )}
+
+      {mods.length > 0 && (
+        <div className="animate-float-up mt-6 space-y-3">
+          <AdBanner />
+          <AdSenseUnit className="min-h-[90px]" />
+        </div>
+      )}
     </StoreShell>
   );
 }
