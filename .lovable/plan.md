@@ -1,32 +1,43 @@
-# APK Fixes: 404, Admin Panel & Lag
+# GitHub Sync Verify + Naya APK Build Guide
 
-Your three APK problems have one shared cause plus one extra cause. Here's what's happening and how I'll fix each.
+Code changes (hash routing + APK me AdSense band) pehle hi apply ho chuke hain aur native bundle rebuild ho gaya hai. Ab sirf 2 kaam bache hain: (A) GitHub pe code confirm karna, (B) naya APK banana.
 
-## What's going wrong
+## Part A — GitHub connect / verify
 
-**1. "404 Page not found" (and Admin panel not opening)**
-The APK loads the app from an internal `https://localhost` file server. The app currently uses normal URL paths (`/admin`, `/categories`, etc.). When the WebView tries to open a path like `/admin`, the local file server looks for a real `/admin` file, doesn't find one, and shows 404. This is why the Admin panel "doesn't work" — tapping it just lands on the 404 page. It's the same root cause for every non-home page inside the APK.
+**Agar GitHub pehle se connected hai:**
+- Lovable ke changes automatically GitHub pe sync hote hain — manual push ki zaroorat nahi.
+- Confirm karein: GitHub repo kholein → latest commit dekhein → in 2 files me recent change hona chahiye:
+  - `src/capacitor-entry.tsx`
+  - `src/lib/ads-config.ts`
 
-**Fix:** Use **hash-based routing** for the Capacitor build only (URLs become `#/admin`, `#/categories`, etc.). Hash routes never hit the file server, so every page — including Admin — opens correctly. The website build stays exactly as it is (normal URLs, good for SEO).
+**Agar GitHub connect nahi hai (mobile):**
+1. Lovable me chat input ke paas **Plus (+)** menu kholein
+2. **GitHub** → **Connect project**
+3. GitHub pe **Authorize** karein
+4. Account/organization chunein
+5. **Create Repository** tap karein
+6. Ek baar sync hone ke baad saara code (naye fixes ke saath) repo me aa jayega
 
-**2. Too much lag**
-The app loads Google AdSense inside the APK. AdSense is built for websites in a browser, not for an APK WebView — it keeps trying to load ads, injects hidden elements, and repeatedly retries, which causes the lag and stutter you're feeling. AdSense also can't legitimately earn inside a sideloaded APK.
+> Note: Ek time pe ek hi GitHub account connect ho sakta hai. Free plan pe code sync/edit ke liye paid workspace chahiye.
 
-**Fix:** Automatically **disable AdSense when the app runs as a native APK** (detected via the Capacitor runtime). Your own custom banners from the Admin panel still show. The website version keeps AdSense unchanged.
+## Part B — Naya APK build (computer pe zaroori)
 
-## Technical changes
+APK mobile pe direct nahi banta — laptop/PC pe Android Studio chahiye.
 
-1. **`src/capacitor-entry.tsx`** — create the router with `createHashHistory()` so the native app uses hash routing. (The SSR/web `getRouter` in `src/router.tsx` stays on browser history.)
-2. **`src/lib/ads-config.ts`** — add a native-app check so `ADSENSE_ENABLED` is `false` when running inside the Capacitor APK (keeps AdSense on for the website).
-3. Rebuild the Capacitor bundle (`capacitor-build/`) so the updated logic ships in the next APK.
+1. **Code laayein:** GitHub repo → `Code` → `Download ZIP` (ya `git clone`), fir extract karein
+2. **Terminal me project folder me jaakar:**
+   ```
+   npm install
+   npm run build   # ya capacitor bundle build (agar alag script hai)
+   npx cap sync android
+   ```
+3. **Android Studio me kholें:** `npx cap open android`
+4. Android Studio me: **Build → Build Bundle(s)/APK(s) → Build APK(s)**
+5. Ban chuka APK install karein → 404 gayab, admin panel chalega, lag remove
 
-## After the fix — how to get the working APK
+> Purana installed APK me fix nahi dikhega — sirf is naye APK me dikhega.
 
-1. I apply the changes and rebuild the Capacitor web bundle.
-2. On your computer: pull the latest code (via GitHub), run `npx cap sync android`, open in Android Studio, and build a fresh APK.
-3. Install the new APK — Admin panel opens, no 404, and the lag is gone.
-
-## Notes
-- No design or feature changes — same UI, same golden theme.
-- Admin login/password and Firebase uploads are unchanged; they'll work once routing is fixed.
-- The website (published Lovable URL) is unaffected by these APK-only changes.
+## Zaroori dhyan
+- Design/feature kuch change nahi hua — same golden UI.
+- Admin password aur Firebase upload waise ke waise kaam karenge.
+- Website (published Lovable URL) pe koi asar nahi — ye fixes sirf APK ke liye hain.
