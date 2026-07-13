@@ -1,71 +1,32 @@
-Plan: Convert AYT R STORE to Android APK with Offline Support
+# APK Fixes: 404, Admin Panel & Lag
 
-Goal
-Wrap the existing web store as a native Android APK using Capacitor so it installs like a real app, works offline for browsing the mod list, and supports sideloading (no Play Store required).
+Your three APK problems have one shared cause plus one extra cause. Here's what's happening and how I'll fix each.
 
-Approach Overview
-1. Capacitor wraps the built web app in a native Android WebView.
-2. Firebase Realtime DB data is cached locally so the mod list loads without internet.
-3. A service worker caches static assets (JS, CSS, fonts) so the UI always renders.
-4. Downloads are wired through Capacitor’s native bridge for reliable APK file saving on Android.
+## What's going wrong
 
-Implementation Steps
+**1. "404 Page not found" (and Admin panel not opening)**
+The APK loads the app from an internal `https://localhost` file server. The app currently uses normal URL paths (`/admin`, `/categories`, etc.). When the WebView tries to open a path like `/admin`, the local file server looks for a real `/admin` file, doesn't find one, and shows 404. This is why the Admin panel "doesn't work" — tapping it just lands on the 404 page. It's the same root cause for every non-home page inside the APK.
 
-1. Fix the AdSense Hydration Mismatch
-   The AdSense script in `__root.tsx` causes a React hydration error because `<ins>` elements differ between SSR and client. Before mobile packaging, render AdSense units only on the client (inside a `useEffect` guard or a client-only wrapper component) so SSR output is stable.
+**Fix:** Use **hash-based routing** for the Capacitor build only (URLs become `#/admin`, `#/categories`, etc.). Hash routes never hit the file server, so every page — including Admin — opens correctly. The website build stays exactly as it is (normal URLs, good for SEO).
 
-2. Add Offline Data Caching for the Mod List
-   Firebase Realtime Database does not have built-in offline persistence (Firestore does, but the app uses RTDB).
-   - Install a lightweight IndexedDB helper (e.g., `idb-keyval`).
-   - In `useMods`, on a successful Firebase `onValue` snapshot, write the mod array to IndexedDB.
-   - On mount, immediately read from IndexedDB to show cached data, then let the live Firebase update refresh it.
-   - Show a small "Offline mode — showing cached data" indicator when the network is unavailable.
+**2. Too much lag**
+The app loads Google AdSense inside the APK. AdSense is built for websites in a browser, not for an APK WebView — it keeps trying to load ads, injects hidden elements, and repeatedly retries, which causes the lag and stutter you're feeling. AdSense also can't legitimately earn inside a sideloaded APK.
 
-3. Add Service Worker + PWA Manifest for Asset Caching
-   - Create `public/manifest.webmanifest` with app name, theme color, icons, and `display: standalone`.
-   - Add matching `<meta>` theme-color and `apple-touch-icon` links in `__root.tsx`.
-   - Use `vite-plugin-pwa` with `generateSW` to produce a service worker that caches the built JS/CSS bundles with `CacheFirst` and HTML navigations with `NetworkFirst`.
-   - Guard service-worker registration so it only runs in production and never inside Lovable preview frames.
+**Fix:** Automatically **disable AdSense when the app runs as a native APK** (detected via the Capacitor runtime). Your own custom banners from the Admin panel still show. The website version keeps AdSense unchanged.
 
-4. Install & Configure Capacitor for Android
-   - Add `@capacitor/core`, `@capacitor/cli`, and `@capacitor/android` as dev dependencies.
-   - Create `capacitor.config.ts` with app ID (e.g., `com.aytr.store`), app name, and `webDir` pointing to the Vite build output.
-   - Run the Capacitor init and add-android commands so the Android platform folder is generated.
-   - Set `server.androidScheme` to `https` and keep `cleartext` disabled for security.
+## Technical changes
 
-5. Wire Native Downloads
-   - Install `@capacitor/filesystem` and `@capacitor/http` (or `@capacitor-community/http`).
-   - Replace the `window.open(downloadUrl, "_blank")` call in `DownloadAdGate` with a Capacitor-native download flow when running inside the Capacitor WebView (`Capacitor.isNativePlatform()`).
-   - On Android, download the APK to the device’s Downloads folder using the native filesystem API and then trigger the system install prompt.
+1. **`src/capacitor-entry.tsx`** — create the router with `createHashHistory()` so the native app uses hash routing. (The SSR/web `getRouter` in `src/router.tsx` stays on browser history.)
+2. **`src/lib/ads-config.ts`** — add a native-app check so `ADSENSE_ENABLED` is `false` when running inside the Capacitor APK (keeps AdSense on for the website).
+3. Rebuild the Capacitor bundle (`capacitor-build/`) so the updated logic ships in the next APK.
 
-6. Generate Android App Icons & Splash Screen
-   - Generate a square 1024×1024 app icon from the existing AYT R STORE logo.
-   - Use Capacitor’s asset generation command (or provide the required PNGs in the correct `android/app/src/main/res/` density folders) for launcher icons.
-   - Provide a splash screen background and centered logo for the launch experience.
+## After the fix — how to get the working APK
 
-7. Build & APK Export Instructions
-   - Add a build script that runs `vite build && npx cap sync android`.
-   - Provide a step-by-step guide for the user to build the final APK locally:
-     a. Open the `android/` folder in Android Studio.
-     b. Let Gradle sync.
-     c. Build → Build Bundle(s) / APK(s) → Build APK(s).
-   - Because the sandbox does not include the Android SDK, the final `.apk` file must be built on the user’s local machine.
+1. I apply the changes and rebuild the Capacitor web bundle.
+2. On your computer: pull the latest code (via GitHub), run `npx cap sync android`, open in Android Studio, and build a fresh APK.
+3. Install the new APK — Admin panel opens, no 404, and the lag is gone.
 
-What This Enables
-- A real Android APK that installs from the file manager.
-- Full offline browsing: open the app without internet and see the last-synced mod list.
-- Faster cold start because static assets are cached and the mod list is pre-loaded from local storage.
-- Native download handling so tapping "Download" saves the mod APK directly to the phone.
-
-What Stays the Same
-- Admin panel, favorites, ad banners, and UI design remain untouched.
-- Online features (live Firebase updates, ads, YouTube embeds) resume automatically when connectivity returns.
-
-Out of Scope for This Plan
-- Migrating from Firebase Realtime DB to Firestore.
-- Play Store publishing or app signing setup.
-- Push notifications.
-- iOS build (Android only).
-
-Note
-The final `.apk` generation requires Android Studio on a local computer because the sandbox cannot host the Android SDK. All code, configuration, and asset setup will be completed in the project so the user only needs to open the generated `android/` folder in Android Studio and click Build.
+## Notes
+- No design or feature changes — same UI, same golden theme.
+- Admin login/password and Firebase uploads are unchanged; they'll work once routing is fixed.
+- The website (published Lovable URL) is unaffected by these APK-only changes.
