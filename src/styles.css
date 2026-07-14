@@ -178,7 +178,12 @@
 .admin-lite .glass-gold {
   background: color-mix(in oklab, white 88%, var(--gold) 12%);
   backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   box-shadow: 0 1px 0 var(--glass-border);
+}
+
+.admin-lite > header {
+  position: static;
 }
 
 .admin-lite .animate-float-up,

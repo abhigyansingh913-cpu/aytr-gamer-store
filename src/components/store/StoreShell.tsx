@@ -24,7 +24,7 @@ export function StoreShell({
         performanceMode && "admin-lite",
       )}
     >
-      <header className="sticky top-0 z-40 px-4 pt-4 admin-lite:static">
+      <header className="sticky top-0 z-40 px-4 pt-4">
         <div className="glass mx-auto flex max-w-3xl items-center gap-3 rounded-2xl px-4 py-2.5">
           <Link to="/" className="flex items-center gap-3">
             <img

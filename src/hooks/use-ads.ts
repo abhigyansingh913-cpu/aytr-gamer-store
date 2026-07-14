@@ -42,13 +42,17 @@ export function useAds() {
 export function useAdminAds() {
   const [ads, setAds] = useState<Ad[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const snapshot = await get(ref(db, "ads"));
       const value = snapshot.val() as Record<string, Omit<Ad, "id">> | null;
       setAds(toAdList(value));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load banners");
     } finally {
       setLoading(false);
     }
@@ -58,5 +62,5 @@ export function useAdminAds() {
     refresh();
   }, [refresh]);
 
-  return { ads, loading, refresh };
+  return { ads, loading, error, refresh };
 }

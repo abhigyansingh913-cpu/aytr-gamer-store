@@ -473,7 +473,7 @@ function AddBannerForm() {
 }
 
 function BannersList() {
-  const { ads, loading, refresh } = useAdminAds();
+  const { ads, loading, error, refresh } = useAdminAds();
   const [showAll, setShowAll] = useState(false);
   const visible = showAll ? ads : ads.slice(0, INITIAL_VISIBLE);
 
@@ -513,6 +513,11 @@ function BannersList() {
         </button>
       </div>
       <div className="flex flex-col gap-2">
+        {error && (
+          <p className="glass rounded-2xl px-3 py-2 text-xs text-destructive">
+            {error}
+          </p>
+        )}
         {visible.map((ad) => (
           <AdRow key={ad.id} ad={ad} onToggle={toggle} onDelete={del} />
         ))}
