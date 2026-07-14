@@ -1,18 +1,29 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { BottomNav } from "./BottomNav";
+import { cn } from "@/lib/utils";
 
 const LOGO = "https://i.ibb.co/JjQZmMfc/Picsart-26-04-24-17-21-31-070.jpg";
 
 export function StoreShell({
   children,
   title,
+  hideBottomNav = false,
+  performanceMode = false,
 }: {
   children: ReactNode;
   title?: string;
+  hideBottomNav?: boolean;
+  performanceMode?: boolean;
 }) {
   return (
-    <div className="min-h-screen pb-28">
+    <div
+      className={cn(
+        "min-h-screen",
+        hideBottomNav ? "pb-6" : "pb-28",
+        performanceMode && "admin-lite",
+      )}
+    >
       <header className="sticky top-0 z-40 px-4 pt-4">
         <div className="glass mx-auto flex max-w-3xl items-center gap-3 rounded-2xl px-4 py-2.5">
           <Link to="/" className="flex items-center gap-3">
@@ -33,7 +44,7 @@ export function StoreShell({
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-4 pt-4">{children}</main>
-      <BottomNav />
+      {!hideBottomNav && <BottomNav />}
     </div>
   );
 }

@@ -16,11 +16,12 @@ import {
   EyeOff,
   ChevronDown,
   ChevronUp,
+  RefreshCw,
 } from "lucide-react";
 import { StoreShell } from "@/components/store/StoreShell";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
-import { useMods } from "@/hooks/use-mods";
-import { useAds } from "@/hooks/use-ads";
+import { useAdminMods } from "@/hooks/use-mods";
+import { useAdminAds } from "@/hooks/use-ads";
 import { db } from "@/lib/firebase";
 import { CATEGORIES } from "@/lib/types";
 import type { Mod, Ad } from "@/lib/types";
@@ -35,7 +36,7 @@ function AdminPage() {
 
   if (!ready) {
     return (
-      <StoreShell>
+      <StoreShell hideBottomNav performanceMode>
         <div className="flex justify-center py-24">
           <Loader2 className="h-8 w-8 animate-spin text-[var(--gold-dark)]" />
         </div>
@@ -66,7 +67,7 @@ function LoginForm() {
   };
 
   return (
-    <StoreShell title="Admin access">
+    <StoreShell title="Admin access" hideBottomNav performanceMode>
       <button
         onClick={() => navigate({ to: "/settings" })}
         className="glass mb-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium active:scale-95"
@@ -121,7 +122,7 @@ function Dashboard() {
   const navigate = useNavigate();
 
   return (
-    <StoreShell title="Upload dashboard">
+    <StoreShell title="Upload dashboard" hideBottomNav performanceMode>
       <div className="mb-4 flex items-center justify-between">
         <button
           onClick={() => navigate({ to: "/settings" })}
@@ -214,6 +215,7 @@ function AddModForm() {
       toast.success("Mod published");
       setForm(empty);
       setShowExtras(false);
+      window.dispatchEvent(new Event("aytr-admin-mods-refresh"));
     } catch {
       toast.error("Failed to publish. Check database permissions.");
     } finally {
@@ -312,7 +314,7 @@ function AddModForm() {
 const INITIAL_VISIBLE = 20;
 
 function ModsList() {
-  const { mods } = useMods();
+  const { mods, loading, error, refresh } = useAdminMods();
   const [showAll, setShowAll] = useState(false);
 
   const visible = showAll ? mods : mods.slice(0, INITIAL_VISIBLE);
@@ -320,18 +322,35 @@ function ModsList() {
   const del = useCallback(async (id: string) => {
     try {
       await remove(ref(db, `mods/${id}`));
+      await refresh();
       toast.success("Mod deleted");
     } catch {
       toast.error("Failed to delete");
     }
-  }, []);
+  }, [refresh]);
 
   return (
     <div className="mt-6">
-      <h2 className="mb-2 px-1 font-display text-base font-semibold">
-        Published mods ({mods.length})
-      </h2>
+      <div className="mb-2 flex items-center justify-between px-1">
+        <h2 className="font-display text-base font-semibold">
+          Published mods ({mods.length})
+        </h2>
+        <button
+          type="button"
+          onClick={refresh}
+          disabled={loading}
+          className="glass inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold disabled:opacity-60"
+        >
+          <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
+          Refresh
+        </button>
+      </div>
       <div className="flex flex-col gap-2">
+        {error && (
+          <p className="glass rounded-2xl px-3 py-2 text-xs text-destructive">
+            {error}
+          </p>
+        )}
         {visible.map((mod) => (
           <ModRow key={mod.id} mod={mod} onDelete={del} />
         ))}
@@ -418,6 +437,7 @@ function AddBannerForm() {
       toast.success("Banner added");
       setImage("");
       setLink("");
+      window.dispatchEvent(new Event("aytr-admin-ads-refresh"));
     } catch {
       toast.error("Failed to add banner");
     } finally {
@@ -455,33 +475,51 @@ function AddBannerForm() {
 }
 
 function BannersList() {
-  const { ads } = useAds();
+  const { ads, loading, error, refresh } = useAdminAds();
   const [showAll, setShowAll] = useState(false);
   const visible = showAll ? ads : ads.slice(0, INITIAL_VISIBLE);
 
   const toggle = useCallback(async (id: string, active: boolean) => {
     try {
       await update(ref(db, `ads/${id}`), { active: !active });
+      await refresh();
     } catch {
       toast.error("Failed to update banner");
     }
-  }, []);
+  }, [refresh]);
 
   const del = useCallback(async (id: string) => {
     try {
       await remove(ref(db, `ads/${id}`));
+      await refresh();
       toast.success("Banner deleted");
     } catch {
       toast.error("Failed to delete banner");
     }
-  }, []);
+  }, [refresh]);
 
   return (
     <div className="mt-4">
-      <h3 className="mb-2 px-1 font-display text-base font-semibold">
-        Banners ({ads.length})
-      </h3>
+      <div className="mb-2 flex items-center justify-between px-1">
+        <h3 className="font-display text-base font-semibold">
+          Banners ({ads.length})
+        </h3>
+        <button
+          type="button"
+          onClick={refresh}
+          disabled={loading}
+          className="glass inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold disabled:opacity-60"
+        >
+          <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
+          Refresh
+        </button>
+      </div>
       <div className="flex flex-col gap-2">
+        {error && (
+          <p className="glass rounded-2xl px-3 py-2 text-xs text-destructive">
+            {error}
+          </p>
+        )}
         {visible.map((ad) => (
           <AdRow key={ad.id} ad={ad} onToggle={toggle} onDelete={del} />
         ))}
