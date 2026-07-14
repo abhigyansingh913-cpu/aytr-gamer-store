@@ -1,43 +1,41 @@
-# GitHub Sync Verify + Naya APK Build Guide
+## Problem
 
-Code changes (hash routing + APK me AdSense band) pehle hi apply ho chuke hain aur native bundle rebuild ho gaya hai. Ab sirf 2 kaam bache hain: (A) GitHub pe code confirm karna, (B) naya APK banana.
+APK me admin page open karte hi stuck ho jata hai / crash hota hai. Reason:
 
-## Part A — GitHub connect / verify
+1. **Form typing = poori list re-render** — `Dashboard` component me hi form state hai. Har keystroke pe saari mods list + banners list + unke images dobara render hote hain. APK ke WebView me ye bahut heavy hai.
+2. **Saari mod images ek saath load** — `mods.map(...)` bina `loading="lazy"` ke chalti hai. Agar 30–50 mods hain to 50 thumbnails ek saath fetch → memory spike → WebView freeze/crash.
+3. **Live Firebase listener** — `useMods` + `useAds` dono `onValue` pe hain, background me update aate rahte hain aur poori list re-render karte hain jab admin type kar raha hota hai.
+4. **Koi image size/decoding hint nahi** — decode main thread block karta hai.
 
-**Agar GitHub pehle se connected hai:**
-- Lovable ke changes automatically GitHub pe sync hote hain — manual push ki zaroorat nahi.
-- Confirm karein: GitHub repo kholein → latest commit dekhein → in 2 files me recent change hona chahiye:
-  - `src/capacitor-entry.tsx`
-  - `src/lib/ads-config.ts`
+## Fix (admin page hi, baaki app untouched)
 
-**Agar GitHub connect nahi hai (mobile):**
-1. Lovable me chat input ke paas **Plus (+)** menu kholein
-2. **GitHub** → **Connect project**
-3. GitHub pe **Authorize** karein
-4. Account/organization chunein
-5. **Create Repository** tap karein
-6. Ek baar sync hone ke baad saara code (naye fixes ke saath) repo me aa jayega
+### 1. Form ko alag component me nikaalo
+`Dashboard` me se add-mod form aur ads-add form ko `AddModForm` / `AddBannerForm` child components me move karo, apna local `useState` un ke andar. Isse type karte waqt sirf form re-render hoga, list nahi.
 
-> Note: Ek time pe ek hi GitHub account connect ho sakta hai. Free plan pe code sync/edit ke liye paid workspace chahiye.
+### 2. Mods list ko memoize + lazy images
+- `ModRow` naam ka `React.memo` component banao (image + title + delete).
+- `<img>` pe `loading="lazy"`, `decoding="async"`, fixed `width={48} height={48}`.
+- Default me sirf **latest 20 mods** dikhao, neeche "Show all (N)" button — bade libraries me 100+ thumbnails ek saath render hi nahi honge.
 
-## Part B — Naya APK build (computer pe zaroori)
+### 3. Banners list bhi same treatment
+`AdRow` memo component, lazy image, fixed size.
 
-APK mobile pe direct nahi banta — laptop/PC pe Android Studio chahiye.
+### 4. Admin route pe live listener ko halka karo
+Admin page pe `useMods` alag `useAdminMods` hook use kare jo `onValue` ki jagah ek `get()` (one-shot fetch) + manual refresh button use kare. Isse type karte waqt background updates list ko re-render nahi karenge. (Ya simply: admin me `useMods` ka result `useMemo` + list ko `React.memo` — no live spam.)
 
-1. **Code laayein:** GitHub repo → `Code` → `Download ZIP` (ya `git clone`), fir extract karein
-2. **Terminal me project folder me jaakar:**
-   ```
-   npm install
-   npm run build   # ya capacitor bundle build (agar alag script hai)
-   npx cap sync android
-   ```
-3. **Android Studio me kholें:** `npx cap open android`
-4. Android Studio me: **Build → Build Bundle(s)/APK(s) → Build APK(s)**
-5. Ban chuka APK install karein → 404 gayab, admin panel chalega, lag remove
+### 5. Chhota cleanup
+- Field/Input already fine, bas `AddModForm` ke andar `useCallback` handlers.
+- `screenshots` inputs ko ek chhote collapsible me daalo taki initial DOM chhota ho.
 
-> Purana installed APK me fix nahi dikhega — sirf is naye APK me dikhega.
+## Files touch honge
 
-## Zaroori dhyan
-- Design/feature kuch change nahi hua — same golden UI.
-- Admin password aur Firebase upload waise ke waise kaam karenge.
-- Website (published Lovable URL) pe koi asar nahi — ye fixes sirf APK ke liye hain.
+- `src/routes/admin.tsx` — split into `LoginForm`, `Dashboard`, `AddModForm`, `ModsList` + `ModRow`, `AddBannerForm`, `BannersList` + `AdRow`. Slice to top 20 with toggle.
+- `src/hooks/use-mods.ts` — export additional `useAdminMods()` (one-shot `get` + manual `refresh`). Existing `useMods` unchanged so store UI same rahe.
+
+## Result
+
+- Admin page open hone pe sirf 20 thumbnails load → fast open, no freeze.
+- Typing smooth — sirf form re-render.
+- Background Firebase updates admin ko disturb nahi karenge.
+- Baaki app (home, categories, favorites, download flow, website) bilkul same rahega.
+- Naya APK build karna hoga (pehle wale steps se) tabhi ye fixes phone pe aayenge.
