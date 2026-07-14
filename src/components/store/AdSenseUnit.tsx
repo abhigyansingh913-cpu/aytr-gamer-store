@@ -25,6 +25,15 @@ export function AdSenseUnit({
 
   useEffect(() => {
     if (!hydrated || !ADSENSE_ENABLED || pushed.current) return;
+
+    if (!document.querySelector(`script[src*="${ADSENSE_CLIENT}"]`)) {
+      const script = document.createElement("script");
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
+      document.head.appendChild(script);
+    }
+
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
       pushed.current = true;

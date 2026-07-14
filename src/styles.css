@@ -119,7 +119,7 @@
     background-image:
       radial-gradient(60rem 40rem at 80% -10%, color-mix(in oklab, var(--gold) 18%, transparent), transparent),
       radial-gradient(50rem 40rem at -10% 20%, color-mix(in oklab, var(--gold-light) 22%, transparent), transparent);
-    background-attachment: fixed;
+    background-attachment: scroll;
   }
 
   h1, h2, h3, h4, .font-display {
@@ -173,3 +173,19 @@
 
 .animate-float-up { animation: float-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .animate-gold-glow { animation: gold-glow-pulse 2.4s ease-in-out infinite; }
+
+.admin-lite .glass,
+.admin-lite .glass-gold {
+  background: color-mix(in oklab, white 88%, var(--gold) 12%);
+  backdrop-filter: none;
+  box-shadow: 0 1px 0 var(--glass-border);
+}
+
+.admin-lite .animate-float-up,
+.admin-lite .animate-gold-glow {
+  animation: none;
+}
+
+.admin-lite * {
+  transition-duration: 0ms !important;
+}
