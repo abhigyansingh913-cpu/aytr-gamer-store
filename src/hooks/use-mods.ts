@@ -87,6 +87,10 @@ export function useAdminMods() {
 
   useEffect(() => {
     refresh();
+
+    if (typeof window === "undefined") return;
+    window.addEventListener("aytr-admin-mods-refresh", refresh);
+    return () => window.removeEventListener("aytr-admin-mods-refresh", refresh);
   }, [refresh]);
 
   return { mods, loading, error, refresh };

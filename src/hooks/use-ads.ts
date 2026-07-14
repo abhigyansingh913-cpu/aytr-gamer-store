@@ -60,6 +60,10 @@ export function useAdminAds() {
 
   useEffect(() => {
     refresh();
+
+    if (typeof window === "undefined") return;
+    window.addEventListener("aytr-admin-ads-refresh", refresh);
+    return () => window.removeEventListener("aytr-admin-ads-refresh", refresh);
   }, [refresh]);
 
   return { ads, loading, error, refresh };

@@ -36,7 +36,7 @@ function AdminPage() {
 
   if (!ready) {
     return (
-      <StoreShell>
+      <StoreShell hideBottomNav performanceMode>
         <div className="flex justify-center py-24">
           <Loader2 className="h-8 w-8 animate-spin text-[var(--gold-dark)]" />
         </div>
@@ -215,6 +215,7 @@ function AddModForm() {
       toast.success("Mod published");
       setForm(empty);
       setShowExtras(false);
+      window.dispatchEvent(new Event("aytr-admin-mods-refresh"));
     } catch {
       toast.error("Failed to publish. Check database permissions.");
     } finally {
@@ -436,6 +437,7 @@ function AddBannerForm() {
       toast.success("Banner added");
       setImage("");
       setLink("");
+      window.dispatchEvent(new Event("aytr-admin-ads-refresh"));
     } catch {
       toast.error("Failed to add banner");
     } finally {
