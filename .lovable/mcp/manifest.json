@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "sdk_version": "0.22.2",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "aytr-gamer-store-mcp",
+      "version": "0.1.0",
+      "title": "Aytr Gamer Store"
+    },
+    "tools": [
+      {
+        "name": "list_mods",
+        "title": "List mods",
+        "description": "List published mods from the Aytr Gamer Store. Optionally filter by category and limit the number of results. Returns newest first.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "enum": [
+                "Texture Packs",
+                "Skins",
+                "APKs",
+                "Add-ons",
+                "MC Templates"
+              ],
+              "description": "Optional category filter."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "description": "Max number of mods to return (default 20, max 100)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_mod",
+        "title": "Get mod details",
+        "description": "Get full details for a single mod by its id, including description, screenshots, download link, and YouTube URL if present.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The mod id (Firebase key)."
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_banners",
+        "title": "List promotional banners",
+        "description": "List promotional banners shown in the Aytr Gamer Store. By default returns only active banners.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "includeInactive": {
+              "type": "boolean",
+              "description": "Include hidden/inactive banners (default false)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
