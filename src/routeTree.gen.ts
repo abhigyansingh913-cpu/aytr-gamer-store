@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as FavoritesRouteImport } from './routes/favorites'
+import { Route as ConnectRouteImport } from './routes/connect'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -33,6 +34,11 @@ const McpRoute = McpRouteImport.update({
 const FavoritesRoute = FavoritesRouteImport.update({
   id: '/favorites',
   path: '/favorites',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConnectRoute = ConnectRouteImport.update({
+  id: '/connect',
+  path: '/connect',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CategoriesRoute = CategoriesRouteImport.update({
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/categories': typeof CategoriesRoute
+  '/connect': typeof ConnectRoute
   '/favorites': typeof FavoritesRoute
   '/mcp': typeof McpRoute
   '/settings': typeof SettingsRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/categories': typeof CategoriesRoute
+  '/connect': typeof ConnectRoute
   '/favorites': typeof FavoritesRoute
   '/mcp': typeof McpRoute
   '/settings': typeof SettingsRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/categories': typeof CategoriesRoute
+  '/connect': typeof ConnectRoute
   '/favorites': typeof FavoritesRoute
   '/mcp': typeof McpRoute
   '/settings': typeof SettingsRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/categories'
+    | '/connect'
     | '/favorites'
     | '/mcp'
     | '/settings'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/categories'
+    | '/connect'
     | '/favorites'
     | '/mcp'
     | '/settings'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/categories'
+    | '/connect'
     | '/favorites'
     | '/mcp'
     | '/settings'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   CategoriesRoute: typeof CategoriesRoute
+  ConnectRoute: typeof ConnectRoute
   FavoritesRoute: typeof FavoritesRoute
   McpRoute: typeof McpRoute
   SettingsRoute: typeof SettingsRoute
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       path: '/favorites'
       fullPath: '/favorites'
       preLoaderRoute: typeof FavoritesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/connect': {
+      id: '/connect'
+      path: '/connect'
+      fullPath: '/connect'
+      preLoaderRoute: typeof ConnectRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/categories': {
@@ -242,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   CategoriesRoute: CategoriesRoute,
+  ConnectRoute: ConnectRoute,
   FavoritesRoute: FavoritesRoute,
   McpRoute: McpRoute,
   SettingsRoute: SettingsRoute,
