@@ -54,7 +54,21 @@ function SettingsPage() {
         ))}
       </div>
 
-      <div className="mt-8 border-t border-[var(--glass-border)] pt-6">
+      <div className="mt-8 border-t border-[var(--glass-border)] pt-6 space-y-3">
+        <button
+          onClick={() => navigate({ to: "/connect" })}
+          className="glass flex w-full items-center gap-3 rounded-2xl p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-gold-lg)]"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-gold text-gold-foreground shadow-[var(--shadow-gold)]">
+            <Sparkles className="h-5 w-5" />
+          </span>
+          <div className="flex-1">
+            <p className="font-display text-sm font-semibold">Connect AI assistant</p>
+            <p className="text-xs text-muted-foreground">Use this store from ChatGPT or Claude</p>
+          </div>
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        </button>
+
         <button
           onClick={() => navigate({ to: "/admin" })}
           className="glass flex w-full items-center gap-3 rounded-2xl p-4 text-left opacity-70 transition-opacity hover:opacity-100"
@@ -67,6 +81,7 @@ function SettingsPage() {
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         </button>
       </div>
+
 
       <p className="mt-6 text-center text-xs text-muted-foreground">
         AYT R STORE · Premium mods & add-ons
