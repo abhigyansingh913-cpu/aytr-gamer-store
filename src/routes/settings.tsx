@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Youtube, Send, LifeBuoy, ShieldCheck, ChevronRight } from "lucide-react";
+import { Youtube, Send, LifeBuoy, ShieldCheck, ChevronRight, Sparkles } from "lucide-react";
 import { StoreShell } from "@/components/store/StoreShell";
 
 export const Route = createFileRoute("/settings")({
