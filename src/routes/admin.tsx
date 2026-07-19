@@ -1,22 +1,23 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useState, type FormEvent, type ReactNode } from "react";
 import { push, ref, remove, update } from "firebase/database";
 import { z } from "zod";
 import { toast } from "sonner";
 import {
   ArrowLeft,
-  Loader2,
-  LogOut,
-  Lock,
-  Plus,
-  Trash2,
-  ShieldCheck,
-  Megaphone,
-  Eye,
-  EyeOff,
   ChevronDown,
   ChevronUp,
+  Eye,
+  EyeOff,
+  Loader2,
+  Lock,
+  LogOut,
+  Megaphone,
+  PackagePlus,
+  Plus,
   RefreshCw,
+  ShieldCheck,
+  Trash2,
 } from "lucide-react";
 import { StoreShell } from "@/components/store/StoreShell";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
@@ -24,12 +25,14 @@ import { useAdminMods } from "@/hooks/use-mods";
 import { useAdminAds } from "@/hooks/use-ads";
 import { db } from "@/lib/firebase";
 import { CATEGORIES } from "@/lib/types";
-import type { Mod, Ad } from "@/lib/types";
+import type { Ad, Mod } from "@/lib/types";
 import { cn, cleanImageUrl } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
+
+type AdminTab = "mods" | "banners";
 
 function AdminPage() {
   const { ready, isAuthenticated } = useAdminAuth();
@@ -53,7 +56,7 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     try {
@@ -70,23 +73,21 @@ function LoginForm() {
     <StoreShell title="Admin access" hideBottomNav performanceMode>
       <button
         onClick={() => navigate({ to: "/settings" })}
-        className="glass mb-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium active:scale-95"
+        className="mb-4 inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-sm font-semibold active:scale-95"
       >
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
 
       <form
         onSubmit={submit}
-        className="glass-gold animate-float-up mx-auto max-w-sm rounded-3xl p-6"
+        className="mx-auto max-w-sm rounded-2xl border border-border bg-card p-5 shadow-none"
       >
         <div className="mb-5 flex flex-col items-center text-center">
-          <span className="animate-gold-glow flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-gold text-gold-foreground">
-            <Lock className="h-7 w-7" />
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <Lock className="h-6 w-6" />
           </span>
           <h1 className="mt-3 font-display text-xl font-bold">Admin Login</h1>
-          <p className="text-xs text-muted-foreground">
-            Secure access to the upload dashboard
-          </p>
+          <p className="text-xs text-muted-foreground">Secure upload access</p>
         </div>
 
         <Field label="Password">
@@ -96,14 +97,14 @@ function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            className="glass w-full rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--gold)]"
+            className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
           />
         </Field>
 
         <button
           type="submit"
           disabled={loading}
-          className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-gold px-4 py-3 text-sm font-bold text-gold-foreground shadow-[var(--shadow-gold)] transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-60"
+          className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground active:scale-95 disabled:opacity-60"
         >
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -120,29 +121,117 @@ function LoginForm() {
 function Dashboard() {
   const { logout } = useAdminAuth();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<AdminTab>("mods");
 
   return (
-    <StoreShell title="Upload dashboard" hideBottomNav performanceMode>
-      <div className="mb-4 flex items-center justify-between">
+    <StoreShell title="Lite admin" hideBottomNav performanceMode>
+      <div className="mb-4 flex items-center justify-between gap-2">
         <button
           onClick={() => navigate({ to: "/settings" })}
-          className="glass inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium active:scale-95"
+          className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-sm font-semibold active:scale-95"
         >
           <ArrowLeft className="h-4 w-4" /> Back
         </button>
         <button
           onClick={logout}
-          className="glass inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium active:scale-95"
+          className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-sm font-semibold active:scale-95"
         >
           <LogOut className="h-4 w-4" /> Logout
         </button>
       </div>
 
-      <AddModForm />
-      <ModsList />
-      <AddBannerForm />
-      <BannersList />
+      <div className="mb-4 grid grid-cols-2 gap-2 rounded-2xl border border-border bg-card p-1">
+        <AdminTabButton
+          active={activeTab === "mods"}
+          icon={<PackagePlus className="h-4 w-4" />}
+          label="Mods"
+          onClick={() => setActiveTab("mods")}
+        />
+        <AdminTabButton
+          active={activeTab === "banners"}
+          icon={<Megaphone className="h-4 w-4" />}
+          label="Banners"
+          onClick={() => setActiveTab("banners")}
+        />
+      </div>
+
+      {activeTab === "mods" ? <ModsPanel /> : <BannersPanel />}
     </StoreShell>
+  );
+}
+
+function AdminTabButton({
+  active,
+  icon,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  icon: ReactNode;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={cn(
+        "flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold",
+        active
+          ? "bg-primary text-primary-foreground"
+          : "text-muted-foreground active:bg-muted",
+      )}
+    >
+      {icon}
+      {label}
+    </button>
+  );
+}
+
+function SectionToolbar({
+  title,
+  count,
+  addLabel,
+  loading,
+  formOpen,
+  onAddToggle,
+  onRefresh,
+}: {
+  title: string;
+  count: number;
+  addLabel: string;
+  loading: boolean;
+  formOpen: boolean;
+  onAddToggle: () => void;
+  onRefresh: () => void;
+}) {
+  return (
+    <div className="mb-3 rounded-2xl border border-border bg-card p-3">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="truncate font-display text-base font-bold">{title}</h2>
+          <p className="text-xs text-muted-foreground">{count} total</p>
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={loading}
+          className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border bg-background px-3 text-xs font-bold disabled:opacity-60"
+        >
+          <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
+          Refresh
+        </button>
+      </div>
+      <button
+        type="button"
+        onClick={onAddToggle}
+        className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground active:scale-95"
+      >
+        <Plus className="h-4 w-4" />
+        {formOpen ? "Close form" : addLabel}
+      </button>
+    </div>
   );
 }
 
@@ -176,7 +265,71 @@ const empty = {
   youtubeUrl: "",
 };
 
-function AddModForm() {
+const INITIAL_VISIBLE = 8;
+
+function ModsPanel() {
+  const { mods, loading, error, refresh } = useAdminMods();
+  const [formOpen, setFormOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const visible = showAll ? mods : mods.slice(0, INITIAL_VISIBLE);
+
+  const del = useCallback(
+    async (id: string) => {
+      setDeletingId(id);
+      try {
+        await remove(ref(db, `mods/${id}`));
+        await refresh();
+        toast.success("Mod deleted");
+      } catch {
+        toast.error("Failed to delete");
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [refresh],
+  );
+
+  return (
+    <section className="space-y-3">
+      <SectionToolbar
+        title="Published mods"
+        count={mods.length}
+        addLabel="Add mod"
+        loading={loading}
+        formOpen={formOpen}
+        onAddToggle={() => setFormOpen((s) => !s)}
+        onRefresh={refresh}
+      />
+
+      {formOpen && <AddModForm onSaved={() => setFormOpen(false)} />}
+
+      <ListState loading={loading} error={error} empty={mods.length === 0} emptyText="No mods published yet." />
+
+      <div className="flex flex-col gap-2">
+        {visible.map((mod) => (
+          <ModRow
+            key={mod.id}
+            mod={mod}
+            deleting={deletingId === mod.id}
+            onDelete={del}
+          />
+        ))}
+      </div>
+
+      {mods.length > INITIAL_VISIBLE && (
+        <button
+          onClick={() => setShowAll((s) => !s)}
+          className="h-11 w-full rounded-xl border border-border bg-card px-3 text-sm font-bold"
+        >
+          {showAll ? "Show less" : `Load more (${mods.length - INITIAL_VISIBLE})`}
+        </button>
+      )}
+    </section>
+  );
+}
+
+function AddModForm({ onSaved }: { onSaved: () => void }) {
   const [form, setForm] = useState(empty);
   const [saving, setSaving] = useState(false);
   const [showExtras, setShowExtras] = useState(false);
@@ -186,7 +339,7 @@ function AddModForm() {
     [],
   );
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const screenshots = [form.screenshot1, form.screenshot2]
       .map((s) => cleanImageUrl(s))
@@ -215,6 +368,7 @@ function AddModForm() {
       toast.success("Mod published");
       setForm(empty);
       setShowExtras(false);
+      onSaved();
       window.dispatchEvent(new Event("aytr-admin-mods-refresh"));
     } catch {
       toast.error("Failed to publish. Check database permissions.");
@@ -224,9 +378,9 @@ function AddModForm() {
   };
 
   return (
-    <form onSubmit={submit} className="glass animate-float-up rounded-2xl p-5">
-      <h2 className="mb-4 flex items-center gap-2 font-display text-lg font-bold">
-        <Plus className="h-5 w-5 text-[var(--gold-dark)]" /> Add new mod
+    <form onSubmit={submit} className="rounded-2xl border border-border bg-card p-4">
+      <h2 className="mb-4 flex items-center gap-2 font-display text-base font-bold">
+        <PackagePlus className="h-5 w-5 text-[var(--gold-dark)]" /> Add new mod
       </h2>
 
       <Field label="App / mod title">
@@ -239,7 +393,7 @@ function AddModForm() {
           onChange={(e) => set("description", e.target.value)}
           rows={3}
           placeholder="Describe the mod…"
-          className="glass w-full rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--gold)]"
+          className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
         />
       </Field>
 
@@ -247,7 +401,7 @@ function AddModForm() {
         <select
           value={form.category}
           onChange={(e) => set("category", e.target.value)}
-          className="glass w-full rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--gold)]"
+          className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
         >
           {CATEGORIES.map((c) => (
             <option key={c} value={c}>
@@ -277,9 +431,9 @@ function AddModForm() {
       <button
         type="button"
         onClick={() => setShowExtras((s) => !s)}
-        className="glass mb-3 flex w-full items-center justify-between rounded-xl px-3 py-2 text-xs font-semibold"
+        className="mb-3 flex h-10 w-full items-center justify-between rounded-xl border border-border bg-background px-3 text-xs font-bold"
       >
-        <span>Screenshots & YouTube (optional)</span>
+        <span>Screenshots & YouTube</span>
         {showExtras ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
       </button>
 
@@ -302,7 +456,7 @@ function AddModForm() {
       <button
         type="submit"
         disabled={saving}
-        className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-gold px-4 py-3 text-sm font-bold text-gold-foreground shadow-[var(--shadow-gold)] transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-60"
+        className="mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground active:scale-95 disabled:opacity-60"
       >
         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
         Publish mod
@@ -311,108 +465,129 @@ function AddModForm() {
   );
 }
 
-const INITIAL_VISIBLE = 20;
-
-function ModsList() {
-  const { mods, loading, error, refresh } = useAdminMods();
-  const [showAll, setShowAll] = useState(false);
-
-  const visible = showAll ? mods : mods.slice(0, INITIAL_VISIBLE);
-
-  const del = useCallback(async (id: string) => {
-    try {
-      await remove(ref(db, `mods/${id}`));
-      await refresh();
-      toast.success("Mod deleted");
-    } catch {
-      toast.error("Failed to delete");
-    }
-  }, [refresh]);
-
-  return (
-    <div className="mt-6">
-      <div className="mb-2 flex items-center justify-between px-1">
-        <h2 className="font-display text-base font-semibold">
-          Published mods ({mods.length})
-        </h2>
-        <button
-          type="button"
-          onClick={refresh}
-          disabled={loading}
-          className="glass inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold disabled:opacity-60"
-        >
-          <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
-          Refresh
-        </button>
-      </div>
-      <div className="flex flex-col gap-2">
-        {error && (
-          <p className="glass rounded-2xl px-3 py-2 text-xs text-destructive">
-            {error}
-          </p>
-        )}
-        {visible.map((mod) => (
-          <ModRow key={mod.id} mod={mod} onDelete={del} />
-        ))}
-        {mods.length === 0 && (
-          <p className="glass rounded-2xl py-6 text-center text-sm text-muted-foreground">
-            No mods published yet.
-          </p>
-        )}
-        {mods.length > INITIAL_VISIBLE && (
-          <button
-            onClick={() => setShowAll((s) => !s)}
-            className="glass mt-1 rounded-xl px-3 py-2 text-xs font-semibold"
-          >
-            {showAll ? "Show less" : `Show all (${mods.length})`}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
 const ModRow = memo(function ModRow({
   mod,
+  deleting,
   onDelete,
 }: {
   mod: Mod;
+  deleting: boolean;
   onDelete: (id: string) => void;
 }) {
   return (
-    <div className="glass flex items-center gap-3 rounded-2xl p-2.5">
+    <div className="flex h-16 items-center gap-3 rounded-2xl border border-border bg-card p-2.5">
       <img
         src={cleanImageUrl(mod.imageUrl)}
         alt={mod.title}
-        width={48}
-        height={48}
+        width={44}
+        height={44}
         loading="lazy"
         decoding="async"
-        className="h-12 w-12 rounded-lg object-cover"
+        className="h-11 w-11 shrink-0 rounded-lg bg-muted object-cover"
       />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold">{mod.title}</p>
-        <p className="text-xs text-muted-foreground">
+        <p className="truncate text-sm font-bold">{mod.title}</p>
+        <p className="truncate text-xs text-muted-foreground">
           {mod.category} · v{mod.version}
         </p>
       </div>
       <button
         onClick={() => onDelete(mod.id)}
+        disabled={deleting}
         aria-label="Delete mod"
-        className="rounded-full p-2 text-destructive transition-colors hover:bg-destructive/10"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-destructive disabled:opacity-60"
       >
-        <Trash2 className="h-4 w-4" />
+        {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
       </button>
     </div>
   );
 });
 
-function AddBannerForm() {
+function BannersPanel() {
+  const { ads, loading, error, refresh } = useAdminAds();
+  const [formOpen, setFormOpen] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const visible = showAll ? ads : ads.slice(0, INITIAL_VISIBLE);
+
+  const toggle = useCallback(
+    async (id: string, active: boolean) => {
+      setBusyId(`toggle-${id}`);
+      try {
+        await update(ref(db, `ads/${id}`), { active: !active });
+        await refresh();
+      } catch {
+        toast.error("Failed to update banner");
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [refresh],
+  );
+
+  const del = useCallback(
+    async (id: string) => {
+      setBusyId(`delete-${id}`);
+      try {
+        await remove(ref(db, `ads/${id}`));
+        await refresh();
+        toast.success("Banner deleted");
+      } catch {
+        toast.error("Failed to delete banner");
+      } finally {
+        setBusyId(null);
+      }
+    },
+    [refresh],
+  );
+
+  return (
+    <section className="space-y-3">
+      <SectionToolbar
+        title="Ad banners"
+        count={ads.length}
+        addLabel="Add banner"
+        loading={loading}
+        formOpen={formOpen}
+        onAddToggle={() => setFormOpen((s) => !s)}
+        onRefresh={refresh}
+      />
+
+      {formOpen && <AddBannerForm onSaved={() => setFormOpen(false)} />}
+
+      <ListState loading={loading} error={error} empty={ads.length === 0} emptyText="No banners yet." />
+
+      <div className="flex flex-col gap-2">
+        {visible.map((ad) => (
+          <AdRow
+            key={ad.id}
+            ad={ad}
+            toggleLoading={busyId === `toggle-${ad.id}`}
+            deleteLoading={busyId === `delete-${ad.id}`}
+            onToggle={toggle}
+            onDelete={del}
+          />
+        ))}
+      </div>
+
+      {ads.length > INITIAL_VISIBLE && (
+        <button
+          onClick={() => setShowAll((s) => !s)}
+          className="h-11 w-full rounded-xl border border-border bg-card px-3 text-sm font-bold"
+        >
+          {showAll ? "Show less" : `Load more (${ads.length - INITIAL_VISIBLE})`}
+        </button>
+      )}
+    </section>
+  );
+}
+
+function AddBannerForm({ onSaved }: { onSaved: () => void }) {
   const [image, setImage] = useState("");
   const [link, setLink] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const addBanner = async (e: React.FormEvent) => {
+  const addBanner = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const imageUrl = cleanImageUrl(image);
     const linkUrl = link.trim();
@@ -437,6 +612,7 @@ function AddBannerForm() {
       toast.success("Banner added");
       setImage("");
       setLink("");
+      onSaved();
       window.dispatchEvent(new Event("aytr-admin-ads-refresh"));
     } catch {
       toast.error("Failed to add banner");
@@ -446,8 +622,8 @@ function AddBannerForm() {
   };
 
   return (
-    <form onSubmit={addBanner} className="glass animate-float-up mt-8 rounded-2xl p-5">
-      <h2 className="mb-1 flex items-center gap-2 font-display text-lg font-bold">
+    <form onSubmit={addBanner} className="rounded-2xl border border-border bg-card p-4">
+      <h2 className="mb-1 flex items-center gap-2 font-display text-base font-bold">
         <Megaphone className="h-5 w-5 text-[var(--gold-dark)]" /> Ads / Banners
       </h2>
       <p className="mb-4 text-xs text-muted-foreground">
@@ -459,13 +635,13 @@ function AddBannerForm() {
       </Field>
 
       <Field label="Click link (optional)">
-        <Input value={link} onChange={setLink} placeholder="https://… (kahan le jaye)" />
+        <Input value={link} onChange={setLink} placeholder="https://…" />
       </Field>
 
       <button
         type="submit"
         disabled={saving}
-        className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-gold px-4 py-3 text-sm font-bold text-gold-foreground shadow-[var(--shadow-gold)] transition-transform hover:scale-[1.02] active:scale-95 disabled:opacity-60"
+        className="mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground active:scale-95 disabled:opacity-60"
       >
         {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
         Add banner
@@ -474,93 +650,30 @@ function AddBannerForm() {
   );
 }
 
-function BannersList() {
-  const { ads, loading, error, refresh } = useAdminAds();
-  const [showAll, setShowAll] = useState(false);
-  const visible = showAll ? ads : ads.slice(0, INITIAL_VISIBLE);
-
-  const toggle = useCallback(async (id: string, active: boolean) => {
-    try {
-      await update(ref(db, `ads/${id}`), { active: !active });
-      await refresh();
-    } catch {
-      toast.error("Failed to update banner");
-    }
-  }, [refresh]);
-
-  const del = useCallback(async (id: string) => {
-    try {
-      await remove(ref(db, `ads/${id}`));
-      await refresh();
-      toast.success("Banner deleted");
-    } catch {
-      toast.error("Failed to delete banner");
-    }
-  }, [refresh]);
-
-  return (
-    <div className="mt-4">
-      <div className="mb-2 flex items-center justify-between px-1">
-        <h3 className="font-display text-base font-semibold">
-          Banners ({ads.length})
-        </h3>
-        <button
-          type="button"
-          onClick={refresh}
-          disabled={loading}
-          className="glass inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold disabled:opacity-60"
-        >
-          <RefreshCw className={cn("h-3.5 w-3.5", loading && "animate-spin")} />
-          Refresh
-        </button>
-      </div>
-      <div className="flex flex-col gap-2">
-        {error && (
-          <p className="glass rounded-2xl px-3 py-2 text-xs text-destructive">
-            {error}
-          </p>
-        )}
-        {visible.map((ad) => (
-          <AdRow key={ad.id} ad={ad} onToggle={toggle} onDelete={del} />
-        ))}
-        {ads.length === 0 && (
-          <p className="glass rounded-2xl py-6 text-center text-sm text-muted-foreground">
-            No banners yet.
-          </p>
-        )}
-        {ads.length > INITIAL_VISIBLE && (
-          <button
-            onClick={() => setShowAll((s) => !s)}
-            className="glass mt-1 rounded-xl px-3 py-2 text-xs font-semibold"
-          >
-            {showAll ? "Show less" : `Show all (${ads.length})`}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
 const AdRow = memo(function AdRow({
   ad,
+  toggleLoading,
+  deleteLoading,
   onToggle,
   onDelete,
 }: {
   ad: Ad;
+  toggleLoading: boolean;
+  deleteLoading: boolean;
   onToggle: (id: string, active: boolean) => void;
   onDelete: (id: string) => void;
 }) {
   return (
-    <div className="glass flex items-center gap-3 rounded-2xl p-2.5">
+    <div className="flex h-16 items-center gap-3 rounded-2xl border border-border bg-card p-2.5">
       <img
         src={cleanImageUrl(ad.imageUrl)}
         alt="Banner"
-        width={80}
-        height={48}
+        width={64}
+        height={44}
         loading="lazy"
         decoding="async"
         className={cn(
-          "h-12 w-20 rounded-lg object-cover",
+          "h-11 w-16 shrink-0 rounded-lg bg-muted object-cover",
           !ad.active && "opacity-40",
         )}
       />
@@ -568,32 +681,76 @@ const AdRow = memo(function AdRow({
         <p className="truncate text-xs text-muted-foreground">
           {ad.linkUrl || "No link"}
         </p>
-        <p className="text-[11px] font-semibold">
-          {ad.active ? "Active" : "Hidden"}
-        </p>
+        <p className="text-[11px] font-bold">{ad.active ? "Active" : "Hidden"}</p>
       </div>
       <button
         onClick={() => onToggle(ad.id, ad.active)}
+        disabled={toggleLoading || deleteLoading}
         aria-label="Toggle banner"
-        className="rounded-full p-2 text-[var(--gold-dark)] transition-colors hover:bg-[var(--gold)]/10"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[var(--gold-dark)] disabled:opacity-60"
       >
-        {ad.active ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+        {toggleLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : ad.active ? (
+          <Eye className="h-4 w-4" />
+        ) : (
+          <EyeOff className="h-4 w-4" />
+        )}
       </button>
       <button
         onClick={() => onDelete(ad.id)}
+        disabled={toggleLoading || deleteLoading}
         aria-label="Delete banner"
-        className="rounded-full p-2 text-destructive transition-colors hover:bg-destructive/10"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-destructive disabled:opacity-60"
       >
-        <Trash2 className="h-4 w-4" />
+        {deleteLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
       </button>
     </div>
   );
 });
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function ListState({
+  loading,
+  error,
+  empty,
+  emptyText,
+}: {
+  loading: boolean;
+  error: string | null;
+  empty: boolean;
+  emptyText: string;
+}) {
+  if (error) {
+    return (
+      <p className="rounded-2xl border border-destructive/30 bg-card px-3 py-2 text-xs text-destructive">
+        {error}
+      </p>
+    );
+  }
+
+  if (loading) {
+    return (
+      <p className="rounded-2xl border border-border bg-card px-3 py-3 text-center text-sm text-muted-foreground">
+        Loading…
+      </p>
+    );
+  }
+
+  if (empty) {
+    return (
+      <p className="rounded-2xl border border-border bg-card px-3 py-6 text-center text-sm text-muted-foreground">
+        {emptyText}
+      </p>
+    );
+  }
+
+  return null;
+}
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="mb-3 block">
-      <span className="mb-1 block px-1 text-xs font-medium text-muted-foreground">
+      <span className="mb-1 block px-1 text-xs font-semibold text-muted-foreground">
         {label}
       </span>
       {children}
@@ -615,9 +772,7 @@ function Input({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className={cn(
-        "glass w-full rounded-xl px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[var(--gold)]",
-      )}
+      className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
     />
   );
 }
