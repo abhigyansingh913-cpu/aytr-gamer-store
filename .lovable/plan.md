@@ -1,41 +1,33 @@
-## Problem
+Plan for APK-friendly admin redesign:
 
-APK me admin page open karte hi stuck ho jata hai / crash hota hai. Reason:
+1. Rebuild the admin page as a lightweight mobile-first dashboard
+   - Keep the same password login and Firebase data actions.
+   - Replace heavy glass/gradient dashboard layout with flat, simple panels optimized for Android WebView.
+   - Keep `StoreShell performanceMode`, but make the admin content itself avoid blur, glow, animation, and large shadows.
 
-1. **Form typing = poori list re-render** — `Dashboard` component me hi form state hai. Har keystroke pe saari mods list + banners list + unke images dobara render hote hain. APK ke WebView me ye bahut heavy hai.
-2. **Saari mod images ek saath load** — `mods.map(...)` bina `loading="lazy"` ke chalti hai. Agar 30–50 mods hain to 50 thumbnails ek saath fetch → memory spike → WebView freeze/crash.
-3. **Live Firebase listener** — `useMods` + `useAds` dono `onValue` pe hain, background me update aate rahte hain aur poori list re-render karte hain jab admin type kar raha hota hai.
-4. **Koi image size/decoding hint nahi** — decode main thread block karta hai.
+2. Split admin into fast sections instead of rendering everything at once
+   - Add a simple tab switcher: `Mods` and `Banners`.
+   - Only render the active section so APK does less work.
+   - Keep forms collapsed by default with an `Add` button, so long forms do not render until needed.
 
-## Fix (admin page hi, baaki app untouched)
+3. Make lists lighter and less laggy
+   - Reduce initial visible rows for APK admin.
+   - Use compact rows with smaller images, fixed dimensions, and no transition effects.
+   - Add manual `Load more` and `Refresh` controls.
+   - Avoid loading banner/mod thumbnails in hidden sections.
 
-### 1. Form ko alag component me nikaalo
-`Dashboard` me se add-mod form aur ads-add form ko `AddModForm` / `AddBannerForm` child components me move karo, apna local `useState` un ke andar. Isse type karte waqt sirf form re-render hoga, list nahi.
+4. Improve stuck-free admin actions
+   - Add per-action loading states for publish/delete/toggle so the whole page does not feel frozen.
+   - Disable only the clicked action while Firebase is working.
+   - Keep clear toast feedback for success/failure.
 
-### 2. Mods list ko memoize + lazy images
-- `ModRow` naam ka `React.memo` component banao (image + title + delete).
-- `<img>` pe `loading="lazy"`, `decoding="async"`, fixed `width={48} height={48}`.
-- Default me sirf **latest 20 mods** dikhao, neeche "Show all (N)" button — bade libraries me 100+ thumbnails ek saath render hi nahi honge.
+5. Keep existing features unchanged
+   - Admin login remains the same password-based flow.
+   - Add/delete mods still works.
+   - Add/toggle/delete banners still works.
+   - No database migration or backend change.
 
-### 3. Banners list bhi same treatment
-`AdRow` memo component, lazy image, fixed size.
-
-### 4. Admin route pe live listener ko halka karo
-Admin page pe `useMods` alag `useAdminMods` hook use kare jo `onValue` ki jagah ek `get()` (one-shot fetch) + manual refresh button use kare. Isse type karte waqt background updates list ko re-render nahi karenge. (Ya simply: admin me `useMods` ka result `useMemo` + list ko `React.memo` — no live spam.)
-
-### 5. Chhota cleanup
-- Field/Input already fine, bas `AddModForm` ke andar `useCallback` handlers.
-- `screenshots` inputs ko ek chhote collapsible me daalo taki initial DOM chhota ho.
-
-## Files touch honge
-
-- `src/routes/admin.tsx` — split into `LoginForm`, `Dashboard`, `AddModForm`, `ModsList` + `ModRow`, `AddBannerForm`, `BannersList` + `AdRow`. Slice to top 20 with toggle.
-- `src/hooks/use-mods.ts` — export additional `useAdminMods()` (one-shot `get` + manual `refresh`). Existing `useMods` unchanged so store UI same rahe.
-
-## Result
-
-- Admin page open hone pe sirf 20 thumbnails load → fast open, no freeze.
-- Typing smooth — sirf form re-render.
-- Background Firebase updates admin ko disturb nahi karenge.
-- Baaki app (home, categories, favorites, download flow, website) bilkul same rahega.
-- Naya APK build karna hoga (pehle wale steps se) tabhi ye fixes phone pe aayenge.
+Technical details:
+- Main edits will be in `src/routes/admin.tsx`.
+- Minor CSS support may be added in `src/styles.css` for APK/admin-lite performance classes.
+- Existing `useAdminMods()` and `useAdminAds()` already use manual Firebase reads, so I will keep that pattern and focus on rendering/performance.
