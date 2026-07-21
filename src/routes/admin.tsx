@@ -440,12 +440,12 @@ function AddModForm({ onSaved }: { onSaved: () => void }) {
 
       {showExtras && (
         <>
-          <Field label="Screenshot URL 1">
-            <Input value={form.screenshot1} onChange={(v) => set("screenshot1", v)} placeholder="https://…/1.jpg" />
+          <Field label="Screenshot 1 (URL or upload)">
+            <ImageUploadField value={form.screenshot1} onChange={(v) => set("screenshot1", v)} folder="screenshots" />
           </Field>
 
-          <Field label="Screenshot URL 2">
-            <Input value={form.screenshot2} onChange={(v) => set("screenshot2", v)} placeholder="https://…/2.jpg" />
+          <Field label="Screenshot 2 (URL or upload)">
+            <ImageUploadField value={form.screenshot2} onChange={(v) => set("screenshot2", v)} folder="screenshots" />
           </Field>
 
           <Field label="YouTube video link">
