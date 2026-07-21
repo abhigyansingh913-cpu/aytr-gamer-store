@@ -631,8 +631,8 @@ function AddBannerForm({ onSaved }: { onSaved: () => void }) {
         Ye banners home page aur download se pehle dikhte hain.
       </p>
 
-      <Field label="Banner image URL">
-        <Input value={image} onChange={setImage} placeholder="https://…/banner.jpg" />
+      <Field label="Banner image (URL or upload)">
+        <ImageUploadField value={image} onChange={setImage} folder="banners" />
       </Field>
 
       <Field label="Click link (optional)">
