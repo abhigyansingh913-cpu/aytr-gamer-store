@@ -20,6 +20,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { StoreShell } from "@/components/store/StoreShell";
+import { ImageUploadField } from "@/components/store/ImageUploadField";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useAdminMods } from "@/hooks/use-mods";
 import { useAdminAds } from "@/hooks/use-ads";
@@ -420,8 +421,8 @@ function AddModForm({ onSaved }: { onSaved: () => void }) {
         </Field>
       </div>
 
-      <Field label="Thumbnail image URL">
-        <Input value={form.imageUrl} onChange={(v) => set("imageUrl", v)} placeholder="https://…/image.jpg" />
+      <Field label="Thumbnail image (URL or upload)">
+        <ImageUploadField value={form.imageUrl} onChange={(v) => set("imageUrl", v)} folder="mods" />
       </Field>
 
       <Field label="Download link">
@@ -439,12 +440,12 @@ function AddModForm({ onSaved }: { onSaved: () => void }) {
 
       {showExtras && (
         <>
-          <Field label="Screenshot URL 1">
-            <Input value={form.screenshot1} onChange={(v) => set("screenshot1", v)} placeholder="https://…/1.jpg" />
+          <Field label="Screenshot 1 (URL or upload)">
+            <ImageUploadField value={form.screenshot1} onChange={(v) => set("screenshot1", v)} folder="screenshots" />
           </Field>
 
-          <Field label="Screenshot URL 2">
-            <Input value={form.screenshot2} onChange={(v) => set("screenshot2", v)} placeholder="https://…/2.jpg" />
+          <Field label="Screenshot 2 (URL or upload)">
+            <ImageUploadField value={form.screenshot2} onChange={(v) => set("screenshot2", v)} folder="screenshots" />
           </Field>
 
           <Field label="YouTube video link">
@@ -630,8 +631,8 @@ function AddBannerForm({ onSaved }: { onSaved: () => void }) {
         Ye banners home page aur download se pehle dikhte hain.
       </p>
 
-      <Field label="Banner image URL">
-        <Input value={image} onChange={setImage} placeholder="https://…/banner.jpg" />
+      <Field label="Banner image (URL or upload)">
+        <ImageUploadField value={image} onChange={setImage} folder="banners" />
       </Field>
 
       <Field label="Click link (optional)">
