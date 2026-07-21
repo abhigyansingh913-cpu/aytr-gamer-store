@@ -421,8 +421,8 @@ function AddModForm({ onSaved }: { onSaved: () => void }) {
         </Field>
       </div>
 
-      <Field label="Thumbnail image URL">
-        <Input value={form.imageUrl} onChange={(v) => set("imageUrl", v)} placeholder="https://…/image.jpg" />
+      <Field label="Thumbnail image (URL or upload)">
+        <ImageUploadField value={form.imageUrl} onChange={(v) => set("imageUrl", v)} folder="mods" />
       </Field>
 
       <Field label="Download link">
