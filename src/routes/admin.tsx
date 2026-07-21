@@ -20,6 +20,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { StoreShell } from "@/components/store/StoreShell";
+import { ImageUploadField } from "@/components/store/ImageUploadField";
 import { useAdminAuth } from "@/hooks/use-admin-auth";
 import { useAdminMods } from "@/hooks/use-mods";
 import { useAdminAds } from "@/hooks/use-ads";
