@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { Heart, Download } from "lucide-react";
 import type { Mod } from "@/lib/types";
-import { cn, cleanImageUrl } from "@/lib/utils";
+import { cn, cleanImageUrl, onImageError } from "@/lib/utils";
 
 function AppCardBase({
   mod,
@@ -33,6 +33,7 @@ function AppCardBase({
           height={300}
           loading={eager ? "eager" : "lazy"}
           decoding="async"
+          onError={onImageError}
           fetchPriority={eager ? "high" : "low"}
           className="h-full w-full object-cover"
         />
@@ -50,17 +51,13 @@ function AppCardBase({
         <Heart
           className={cn(
             "h-4 w-4",
-            isFavorite
-              ? "fill-[var(--gold)] text-[var(--gold-dark)]"
-              : "text-muted-foreground",
+            isFavorite ? "fill-[var(--gold)] text-[var(--gold-dark)]" : "text-muted-foreground",
           )}
         />
       </button>
 
       <div className="flex flex-1 flex-col gap-1 px-1 pt-2">
-        <h3 className="line-clamp-1 font-display text-sm font-semibold">
-          {mod.title}
-        </h3>
+        <h3 className="line-clamp-1 font-display text-sm font-semibold">{mod.title}</h3>
         <p className="text-[11px] text-muted-foreground">v{mod.version}</p>
         <Link
           to="/app/$id"
@@ -75,9 +72,11 @@ function AppCardBase({
   );
 }
 
-export const AppCard = memo(AppCardBase, (a, b) =>
-  a.mod.id === b.mod.id &&
-  a.isFavorite === b.isFavorite &&
-  a.index === b.index &&
-  a.onToggleFavorite === b.onToggleFavorite
+export const AppCard = memo(
+  AppCardBase,
+  (a, b) =>
+    a.mod.id === b.mod.id &&
+    a.isFavorite === b.isFavorite &&
+    a.index === b.index &&
+    a.onToggleFavorite === b.onToggleFavorite,
 );

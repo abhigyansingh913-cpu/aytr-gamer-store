@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAds } from "@/hooks/use-ads";
-import { cleanImageUrl, cn } from "@/lib/utils";
+import { cleanImageUrl, cn, onImageError } from "@/lib/utils";
 
 function isSafeUrl(url: string) {
   return /^https?:\/\//i.test(url.trim());
@@ -17,10 +17,7 @@ export function AdBanner({ className }: { className?: string }) {
 
   useEffect(() => {
     if (active.length <= 1) return;
-    const t = setInterval(
-      () => setI((p) => (p + 1) % active.length),
-      6000,
-    );
+    const t = setInterval(() => setI((p) => (p + 1) % active.length), 6000);
     return () => clearInterval(t);
   }, [active.length]);
 
@@ -38,6 +35,7 @@ export function AdBanner({ className }: { className?: string }) {
         src={img}
         alt="Sponsored"
         loading="lazy"
+        onError={onImageError}
         className="w-full object-cover"
       />
     </div>

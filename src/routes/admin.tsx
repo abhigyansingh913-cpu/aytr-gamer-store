@@ -14,6 +14,7 @@ import {
   LogOut,
   Megaphone,
   PackagePlus,
+  Pencil,
   Plus,
   RefreshCw,
   ShieldCheck,
@@ -27,7 +28,7 @@ import { useAdminAds } from "@/hooks/use-ads";
 import { db } from "@/lib/firebase";
 import { CATEGORIES } from "@/lib/types";
 import type { Ad, Mod } from "@/lib/types";
-import { cn, cleanImageUrl } from "@/lib/utils";
+import { cn, cleanImageUrl, onImageError } from "@/lib/utils";
 
 export const Route = createFileRoute("/admin")({
   component: AdminPage,
@@ -179,9 +180,7 @@ function AdminTabButton({
       onClick={onClick}
       className={cn(
         "flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold",
-        active
-          ? "bg-primary text-primary-foreground"
-          : "text-muted-foreground active:bg-muted",
+        active ? "bg-primary text-primary-foreground" : "text-muted-foreground active:bg-muted",
       )}
     >
       {icon}
@@ -245,12 +244,7 @@ const modSchema = z.object({
   version: z.string().trim().min(1, "Version required").max(30),
   size: z.string().trim().min(1, "Size required").max(30),
   screenshots: z.array(z.string().url()).max(10),
-  youtubeUrl: z
-    .string()
-    .trim()
-    .url("Valid YouTube URL required")
-    .max(600)
-    .optional(),
+  youtubeUrl: z.string().trim().url("Valid YouTube URL required").max(600).optional(),
 });
 
 const empty = {
@@ -271,6 +265,7 @@ const INITIAL_VISIBLE = 8;
 function ModsPanel() {
   const { mods, loading, error, refresh } = useAdminMods();
   const [formOpen, setFormOpen] = useState(false);
+  const [editing, setEditing] = useState<Mod | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const visible = showAll ? mods : mods.slice(0, INITIAL_VISIBLE);
@@ -298,14 +293,31 @@ function ModsPanel() {
         count={mods.length}
         addLabel="Add mod"
         loading={loading}
-        formOpen={formOpen}
-        onAddToggle={() => setFormOpen((s) => !s)}
+        formOpen={formOpen || !!editing}
+        onAddToggle={() => {
+          setEditing(null);
+          setFormOpen((s) => !s);
+        }}
         onRefresh={refresh}
       />
 
-      {formOpen && <AddModForm onSaved={() => setFormOpen(false)} />}
+      {(formOpen || editing) && (
+        <ModForm
+          key={editing?.id ?? "new"}
+          initial={editing}
+          onSaved={() => {
+            setEditing(null);
+            setFormOpen(false);
+          }}
+        />
+      )}
 
-      <ListState loading={loading} error={error} empty={mods.length === 0} emptyText="No mods published yet." />
+      <ListState
+        loading={loading}
+        error={error}
+        empty={mods.length === 0}
+        emptyText="No mods published yet."
+      />
 
       <div className="flex flex-col gap-2">
         {visible.map((mod) => (
@@ -314,6 +326,10 @@ function ModsPanel() {
             mod={mod}
             deleting={deletingId === mod.id}
             onDelete={del}
+            onEdit={(m) => {
+              setFormOpen(false);
+              setEditing(m);
+            }}
           />
         ))}
       </div>
@@ -330,8 +346,23 @@ function ModsPanel() {
   );
 }
 
-function AddModForm({ onSaved }: { onSaved: () => void }) {
-  const [form, setForm] = useState(empty);
+function ModForm({ initial, onSaved }: { initial: Mod | null; onSaved: () => void }) {
+  const [form, setForm] = useState(() =>
+    initial
+      ? {
+          title: initial.title,
+          description: initial.description,
+          category: initial.category,
+          imageUrl: initial.imageUrl,
+          downloadLink: initial.downloadLink,
+          version: initial.version,
+          size: initial.size,
+          screenshot1: initial.screenshots?.[0] ?? "",
+          screenshot2: initial.screenshots?.[1] ?? "",
+          youtubeUrl: initial.youtubeUrl ?? "",
+        }
+      : empty,
+  );
   const [saving, setSaving] = useState(false);
   const [showExtras, setShowExtras] = useState(false);
 
@@ -365,14 +396,17 @@ function AddModForm({ onSaved }: { onSaved: () => void }) {
 
     setSaving(true);
     try {
-      await push(ref(db, "mods"), { ...parsed.data, createdAt: Date.now() });
-      toast.success("Mod published");
-      setForm(empty);
-      setShowExtras(false);
+      if (initial) {
+        await update(ref(db, `mods/${initial.id}`), parsed.data);
+        toast.success("Mod updated");
+      } else {
+        await push(ref(db, "mods"), { ...parsed.data, createdAt: Date.now() });
+        toast.success("Mod published");
+      }
       onSaved();
       window.dispatchEvent(new Event("aytr-admin-mods-refresh"));
     } catch {
-      toast.error("Failed to publish. Check database permissions.");
+      toast.error("Failed to save. Check database permissions.");
     } finally {
       setSaving(false);
     }
@@ -381,11 +415,16 @@ function AddModForm({ onSaved }: { onSaved: () => void }) {
   return (
     <form onSubmit={submit} className="rounded-2xl border border-border bg-card p-4">
       <h2 className="mb-4 flex items-center gap-2 font-display text-base font-bold">
-        <PackagePlus className="h-5 w-5 text-[var(--gold-dark)]" /> Add new mod
+        <PackagePlus className="h-5 w-5 text-[var(--gold-dark)]" />
+        {initial ? "Edit mod" : "Add new mod"}
       </h2>
 
       <Field label="App / mod title">
-        <Input value={form.title} onChange={(v) => set("title", v)} placeholder="Ultra HD Textures" />
+        <Input
+          value={form.title}
+          onChange={(v) => set("title", v)}
+          placeholder="Ultra HD Textures"
+        />
       </Field>
 
       <Field label="Description">
@@ -422,11 +461,19 @@ function AddModForm({ onSaved }: { onSaved: () => void }) {
       </div>
 
       <Field label="Thumbnail image (URL or upload)">
-        <ImageUploadField value={form.imageUrl} onChange={(v) => set("imageUrl", v)} folder="mods" />
+        <ImageUploadField
+          value={form.imageUrl}
+          onChange={(v) => set("imageUrl", v)}
+          folder="mods"
+        />
       </Field>
 
       <Field label="Download link">
-        <Input value={form.downloadLink} onChange={(v) => set("downloadLink", v)} placeholder="https://…/download" />
+        <Input
+          value={form.downloadLink}
+          onChange={(v) => set("downloadLink", v)}
+          placeholder="https://…/download"
+        />
       </Field>
 
       <button
@@ -441,27 +488,51 @@ function AddModForm({ onSaved }: { onSaved: () => void }) {
       {showExtras && (
         <>
           <Field label="Screenshot 1 (URL or upload)">
-            <ImageUploadField value={form.screenshot1} onChange={(v) => set("screenshot1", v)} folder="screenshots" />
+            <ImageUploadField
+              value={form.screenshot1}
+              onChange={(v) => set("screenshot1", v)}
+              folder="screenshots"
+            />
           </Field>
 
           <Field label="Screenshot 2 (URL or upload)">
-            <ImageUploadField value={form.screenshot2} onChange={(v) => set("screenshot2", v)} folder="screenshots" />
+            <ImageUploadField
+              value={form.screenshot2}
+              onChange={(v) => set("screenshot2", v)}
+              folder="screenshots"
+            />
           </Field>
 
           <Field label="YouTube video link">
-            <Input value={form.youtubeUrl} onChange={(v) => set("youtubeUrl", v)} placeholder="https://youtube.com/watch?v=…" />
+            <Input
+              value={form.youtubeUrl}
+              onChange={(v) => set("youtubeUrl", v)}
+              placeholder="https://youtube.com/watch?v=…"
+            />
           </Field>
         </>
       )}
 
-      <button
-        type="submit"
-        disabled={saving}
-        className="mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground active:scale-95 disabled:opacity-60"
-      >
-        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-        Publish mod
-      </button>
+      <div className="mt-1 flex gap-2">
+        <button
+          type="submit"
+          disabled={saving}
+          className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground active:scale-95 disabled:opacity-60"
+        >
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+          {initial ? "Save changes" : "Publish mod"}
+        </button>
+        {initial && (
+          <button
+            type="button"
+            onClick={onSaved}
+            disabled={saving}
+            className="flex h-12 items-center justify-center rounded-xl border border-border bg-background px-4 text-sm font-bold active:scale-95 disabled:opacity-60"
+          >
+            Cancel
+          </button>
+        )}
+      </div>
     </form>
   );
 }
@@ -470,10 +541,12 @@ const ModRow = memo(function ModRow({
   mod,
   deleting,
   onDelete,
+  onEdit,
 }: {
   mod: Mod;
   deleting: boolean;
   onDelete: (id: string) => void;
+  onEdit: (mod: Mod) => void;
 }) {
   return (
     <div className="flex h-16 items-center gap-3 rounded-2xl border border-border bg-card p-2.5">
@@ -484,6 +557,7 @@ const ModRow = memo(function ModRow({
         height={44}
         loading="lazy"
         decoding="async"
+        onError={onImageError}
         className="h-11 w-11 shrink-0 rounded-lg bg-muted object-cover"
       />
       <div className="min-w-0 flex-1">
@@ -492,6 +566,14 @@ const ModRow = memo(function ModRow({
           {mod.category} · v{mod.version}
         </p>
       </div>
+      <button
+        onClick={() => onEdit(mod)}
+        disabled={deleting}
+        aria-label="Edit mod"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[var(--gold-dark)] disabled:opacity-60"
+      >
+        <Pencil className="h-4 w-4" />
+      </button>
       <button
         onClick={() => onDelete(mod.id)}
         disabled={deleting}
@@ -556,7 +638,12 @@ function BannersPanel() {
 
       {formOpen && <AddBannerForm onSaved={() => setFormOpen(false)} />}
 
-      <ListState loading={loading} error={error} empty={ads.length === 0} emptyText="No banners yet." />
+      <ListState
+        loading={loading}
+        error={error}
+        empty={ads.length === 0}
+        emptyText="No banners yet."
+      />
 
       <div className="flex flex-col gap-2">
         {visible.map((ad) => (
@@ -628,7 +715,7 @@ function AddBannerForm({ onSaved }: { onSaved: () => void }) {
         <Megaphone className="h-5 w-5 text-[var(--gold-dark)]" /> Ads / Banners
       </h2>
       <p className="mb-4 text-xs text-muted-foreground">
-        Ye banners home page aur download se pehle dikhte hain.
+        Banners appear on the home page and before downloads.
       </p>
 
       <Field label="Banner image (URL or upload)">
@@ -673,15 +760,14 @@ const AdRow = memo(function AdRow({
         height={44}
         loading="lazy"
         decoding="async"
+        onError={onImageError}
         className={cn(
           "h-11 w-16 shrink-0 rounded-lg bg-muted object-cover",
           !ad.active && "opacity-40",
         )}
       />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-xs text-muted-foreground">
-          {ad.linkUrl || "No link"}
-        </p>
+        <p className="truncate text-xs text-muted-foreground">{ad.linkUrl || "No link"}</p>
         <p className="text-[11px] font-bold">{ad.active ? "Active" : "Hidden"}</p>
       </div>
       <button
@@ -704,7 +790,11 @@ const AdRow = memo(function AdRow({
         aria-label="Delete banner"
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-destructive disabled:opacity-60"
       >
-        {deleteLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+        {deleteLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Trash2 className="h-4 w-4" />
+        )}
       </button>
     </div>
   );
@@ -751,9 +841,7 @@ function ListState({
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="mb-3 block">
-      <span className="mb-1 block px-1 text-xs font-semibold text-muted-foreground">
-        {label}
-      </span>
+      <span className="mb-1 block px-1 text-xs font-semibold text-muted-foreground">{label}</span>
       {children}
     </label>
   );

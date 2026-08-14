@@ -3,6 +3,7 @@ import { ref as sref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { storage } from "@/lib/firebase";
+import { onImageError } from "@/lib/utils";
 
 interface Props {
   value: string;
@@ -11,12 +12,7 @@ interface Props {
   folder?: string;
 }
 
-export function ImageUploadField({
-  value,
-  onChange,
-  placeholder,
-  folder = "uploads",
-}: Props) {
+export function ImageUploadField({ value, onChange, placeholder, folder = "uploads" }: Props) {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -32,9 +28,7 @@ export function ImageUploadField({
     setUploading(true);
     try {
       const ext = file.name.split(".").pop() || "jpg";
-      const path = `${folder}/${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2, 8)}.${ext}`;
+      const path = `${folder}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
       const ref = sref(storage, path);
       await uploadBytes(ref, file);
       const url = await getDownloadURL(ref);
@@ -87,6 +81,7 @@ export function ImageUploadField({
           <img
             src={value}
             alt="preview"
+            onError={onImageError}
             className="h-16 w-16 rounded-lg border border-border object-cover"
           />
           <button

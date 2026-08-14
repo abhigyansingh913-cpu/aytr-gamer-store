@@ -21,9 +21,12 @@ export function useMods() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [fromCache, setFromCache] = useState(false);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setError(null);
 
     // Load cached data immediately for offline speed
     loadCachedMods().then((cached) => {
@@ -57,9 +60,11 @@ export function useMods() {
       cancelled = true;
       unsub();
     };
-  }, []);
+  }, [attempt]);
 
-  return { mods, loading, error, fromCache };
+  const retry = useCallback(() => setAttempt((a) => a + 1), []);
+
+  return { mods, loading, error, fromCache, retry };
 }
 
 export function useAdminMods() {
@@ -99,4 +104,56 @@ export function useAdminMods() {
 export function useMod(id: string) {
   const { mods, loading, error } = useMods();
   return { mod: mods.find((m) => m.id === id) ?? null, loading, error };
+}
+
+export function useModById(id: string) {
+  const [mod, setMod] = useState<Mod | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    loadCachedMods().then((cached) => {
+      if (cancelled) return;
+      const found = cached.find((m) => m.id === id);
+      if (found) {
+        setMod(found);
+        setLoading(false);
+      }
+    });
+
+    const modRef = ref(db, `mods/${id}`);
+    const unsub = onValue(
+      modRef,
+      (snapshot) => {
+        if (cancelled) return;
+        const value = snapshot.val() as Omit<Mod, "id"> | null;
+        if (value) {
+          const next: Mod = {
+            id,
+            ...value,
+            screenshots: value.screenshots ?? [],
+          };
+          setMod(next);
+        } else {
+          setMod(null);
+        }
+        setLoading(false);
+      },
+      (err) => {
+        if (cancelled) return;
+        setError(err.message);
+        setLoading(false);
+      },
+    );
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, [id]);
+
+  return { mod, loading, error };
 }

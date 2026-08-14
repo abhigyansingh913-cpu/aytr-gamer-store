@@ -8,10 +8,8 @@ export const ADSENSE_CLIENT = "ca-pub-4394249029646548";
 // APK WebView it just retries endlessly and causes lag, so we disable it there.
 function isNativeApp() {
   if (typeof window === "undefined") return false;
-  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } })
-    .Capacitor;
+  const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
   return cap?.isNativePlatform?.() === true;
 }
 
-export const ADSENSE_ENABLED =
-  /^ca-pub-\d+$/.test(ADSENSE_CLIENT.trim()) && !isNativeApp();
+export const ADSENSE_ENABLED = /^ca-pub-\d+$/.test(ADSENSE_CLIENT.trim()) && !isNativeApp();

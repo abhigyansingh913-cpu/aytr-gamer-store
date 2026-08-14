@@ -1,10 +1,4 @@
-export const CATEGORIES = [
-  "Texture Packs",
-  "Skins",
-  "APKs",
-  "Add-ons",
-  "MC Templates",
-] as const;
+export const CATEGORIES = ["Texture Packs", "Skins", "APKs", "Add-ons", "MC Templates"] as const;
 
 export type Category = (typeof CATEGORIES)[number];
 

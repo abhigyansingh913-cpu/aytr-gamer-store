@@ -29,23 +29,15 @@ export function useFavorites() {
     window.localStorage.setItem(KEY, JSON.stringify(next));
   }, []);
 
-  const toggleFavorite = useCallback(
-    (id: string) => {
-      setFavorites((prev) => {
-        const next = prev.includes(id)
-          ? prev.filter((x) => x !== id)
-          : [...prev, id];
-        window.localStorage.setItem(KEY, JSON.stringify(next));
-        return next;
-      });
-    },
-    [],
-  );
+  const toggleFavorite = useCallback((id: string) => {
+    setFavorites((prev) => {
+      const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      window.localStorage.setItem(KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
 
-  const isFavorite = useCallback(
-    (id: string) => favorites.includes(id),
-    [favorites],
-  );
+  const isFavorite = useCallback((id: string) => favorites.includes(id), [favorites]);
 
   return { favorites, toggleFavorite, isFavorite, persist };
 }

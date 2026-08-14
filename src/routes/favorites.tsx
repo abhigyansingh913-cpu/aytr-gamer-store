@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart } from "lucide-react";
 import { StoreShell } from "@/components/store/StoreShell";
 import { AppCard } from "@/components/store/AppCard";
+import { ModGridSkeleton } from "@/components/store/ModGridSkeleton";
 import { useMods } from "@/hooks/use-mods";
 import { useFavorites } from "@/hooks/use-favorites";
 
@@ -17,10 +18,8 @@ function FavoritesPage() {
 
   return (
     <StoreShell title="Your saved mods">
-      {loading ? (
-        <div className="flex justify-center py-24">
-          <Loader2 className="h-8 w-8 animate-spin text-[var(--gold-dark)]" />
-        </div>
+      {loading && mods.length === 0 ? (
+        <ModGridSkeleton />
       ) : favMods.length === 0 ? (
         <div className="glass animate-float-up flex flex-col items-center rounded-2xl py-16 text-center">
           <Heart className="h-10 w-10 text-[var(--gold-dark)]" />

@@ -21,10 +21,7 @@ export function DownloadAdGate({
   useEffect(() => {
     if (!open) return;
     setCount(5);
-    const t = setInterval(
-      () => setCount((c) => (c <= 1 ? 0 : c - 1)),
-      1000,
-    );
+    const t = setInterval(() => setCount((c) => (c <= 1 ? 0 : c - 1)), 1000);
     return () => clearInterval(t);
   }, [open]);
 
@@ -52,8 +49,7 @@ export function DownloadAdGate({
         </div>
 
         <p className="mb-3 text-xs text-muted-foreground">
-          Your download will be ready in a moment. Thanks for supporting the
-          store!
+          Your download will be ready in a moment. Thanks for supporting the store!
         </p>
 
         <div className="space-y-3">

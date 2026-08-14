@@ -9,10 +9,7 @@ export default defineTool({
   description:
     "List published mods from the Aytr Gamer Store. Optionally filter by category and limit the number of results. Returns newest first.",
   inputSchema: {
-    category: z
-      .enum(CATEGORIES)
-      .optional()
-      .describe("Optional category filter."),
+    category: z.enum(CATEGORIES).optional().describe("Optional category filter."),
     limit: z
       .number()
       .int()

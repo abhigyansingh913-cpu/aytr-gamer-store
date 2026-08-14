@@ -63,7 +63,8 @@ function ConnectPage() {
         </div>
 
         <p className="mt-3 text-xs text-muted-foreground">
-          Your assistant can browse mods, read full mod details, and see the current banners — the same info shown in the store.
+          Your assistant can browse mods, read full mod details, and see the current banners — the
+          same info shown in the store.
         </p>
       </div>
 
@@ -72,9 +73,19 @@ function ConnectPage() {
           icon={<Bot className="h-5 w-5" />}
           title="Connect with ChatGPT"
           steps={[
-            <>Open <ExtLink href="https://chatgpt.com/#settings/Connectors/Advanced">Settings → Connectors → Advanced</ExtLink> and enable <b>Developer mode</b> (read the risk notice).</>,
-            <>In the chat composer's <b>+</b> menu, turn on <b>Developer mode</b>.</>,
-            <>Click <b>Add sources</b>, then <b>Connect more</b>.</>,
+            <>
+              Open{" "}
+              <ExtLink href="https://chatgpt.com/#settings/Connectors/Advanced">
+                Settings → Connectors → Advanced
+              </ExtLink>{" "}
+              and enable <b>Developer mode</b> (read the risk notice).
+            </>,
+            <>
+              In the chat composer's <b>+</b> menu, turn on <b>Developer mode</b>.
+            </>,
+            <>
+              Click <b>Add sources</b>, then <b>Connect more</b>.
+            </>,
             <>Name the connector and paste the MCP URL above.</>,
             <>Ask ChatGPT to use AYT R STORE.</>,
           ]}
@@ -83,7 +94,13 @@ function ConnectPage() {
           icon={<Bot className="h-5 w-5" />}
           title="Connect with Claude"
           steps={[
-            <>Open <ExtLink href="https://claude.ai/customize/connectors?modal=add-custom-connector">Claude → Connectors → Add custom connector</ExtLink>.</>,
+            <>
+              Open{" "}
+              <ExtLink href="https://claude.ai/customize/connectors?modal=add-custom-connector">
+                Claude → Connectors → Add custom connector
+              </ExtLink>
+              .
+            </>,
             <>Name the connector and paste the MCP URL above.</>,
             <>Enable the connector from the chat composer, then ask Claude to use AYT R STORE.</>,
           ]}
@@ -98,7 +115,8 @@ function ConnectPage() {
           <div>
             <h2 className="font-display text-lg font-semibold">Refresh after the store updates</h2>
             <p className="text-xs text-muted-foreground">
-              Assistants cache the tool list. After we ship changes, refresh the connector to pick them up.
+              Assistants cache the tool list. After we ship changes, refresh the connector to pick
+              them up.
             </p>
           </div>
         </div>
@@ -108,8 +126,12 @@ function ConnectPage() {
             compact
             title="ChatGPT"
             steps={[
-              <>Open ChatGPT app preferences and pick AYT R STORE under <b>Enabled apps</b>.</>,
-              <>Next to <b>Information</b>, click <b>Refresh</b>.</>,
+              <>
+                Open ChatGPT app preferences and pick AYT R STORE under <b>Enabled apps</b>.
+              </>,
+              <>
+                Next to <b>Information</b>, click <b>Refresh</b>.
+              </>,
               <>If the URL changed, paste the latest URL above.</>,
               <>Start a new chat and ask ChatGPT to use AYT R STORE.</>,
             ]}
@@ -155,7 +177,13 @@ function ClientCard({
   compact?: boolean;
 }) {
   return (
-    <div className={compact ? "rounded-xl border border-[var(--glass-border)] bg-white/50 p-4" : "glass animate-float-up rounded-2xl p-5"}>
+    <div
+      className={
+        compact
+          ? "rounded-xl border border-[var(--glass-border)] bg-white/50 p-4"
+          : "glass animate-float-up rounded-2xl p-5"
+      }
+    >
       <div className="mb-3 flex items-center gap-2">
         {icon && (
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-gold text-gold-foreground">

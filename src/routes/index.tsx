@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Loader2, PackageOpen } from "lucide-react";
+import { Loader2, PackageOpen, Search, SearchX, RefreshCw } from "lucide-react";
 import { StoreShell } from "@/components/store/StoreShell";
 import { AppCard } from "@/components/store/AppCard";
 import { AdBanner } from "@/components/store/AdBanner";
 import { AdSenseUnit } from "@/components/store/AdSenseUnit";
 import { Splash } from "@/components/store/Splash";
+import { ModGridSkeleton } from "@/components/store/ModGridSkeleton";
 import { useMods } from "@/hooks/use-mods";
 import { useFavorites } from "@/hooks/use-favorites";
 
@@ -18,7 +19,8 @@ const PAGE_SIZE = 12;
 function Index() {
   const [showSplash, setShowSplash] = useState(true);
   const [visible, setVisible] = useState(PAGE_SIZE);
-  const { mods, loading } = useMods();
+  const [query, setQuery] = useState("");
+  const { mods, loading, error, fromCache, retry } = useMods();
   const { isFavorite, toggleFavorite } = useFavorites();
 
   useEffect(() => {
@@ -31,8 +33,17 @@ function Index() {
     setShowSplash(false);
   }, []);
 
-  const shownMods = useMemo(() => mods.slice(0, visible), [mods, visible]);
-  const canLoadMore = mods.length > visible;
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return mods;
+    return mods.filter((m) => {
+      const haystack = `${m.title} ${m.description} ${m.category} ${m.version}`.toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [mods, query]);
+
+  const shownMods = useMemo(() => filtered.slice(0, visible), [filtered, visible]);
+  const canLoadMore = filtered.length > visible;
 
   if (showSplash) return <Splash onFinish={finishSplash} />;
 
@@ -47,18 +58,49 @@ function Index() {
         </p>
       </section>
 
+      <div className="relative mb-5">
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setVisible(PAGE_SIZE);
+          }}
+          placeholder="Search mods, skins, packs…"
+          aria-label="Search mods"
+          className="glass h-12 w-full rounded-2xl pl-10 pr-10 text-sm font-medium outline-none transition-shadow focus:shadow-[var(--shadow-gold-lg)]"
+        />
+        {query && (
+          <button
+            onClick={() => {
+              setQuery("");
+              setVisible(PAGE_SIZE);
+            }}
+            aria-label="Clear search"
+            className="absolute right-2.5 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-black/5 hover:text-foreground"
+          >
+            <SearchX className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
       <div className="mb-5 space-y-3">
         <AdBanner />
         <AdSenseUnit className="min-h-[90px]" />
       </div>
 
-      {loading && mods.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
-          <Loader2 className="h-8 w-8 animate-spin text-[var(--gold-dark)]" />
-          <p className="mt-3 text-sm">Loading mods…</p>
-        </div>
-      ) : mods.length === 0 ? (
-        <EmptyState />
+      {error && !fromCache ? (
+        <ErrorState onRetry={retry} />
+      ) : loading && mods.length === 0 ? (
+        <ModGridSkeleton />
+      ) : filtered.length === 0 ? (
+        <EmptyState
+          hasQuery={!!query.trim()}
+          onRefine={() => {
+            document.querySelector<HTMLInputElement>('input[aria-label="Search mods"]')?.focus();
+          }}
+        />
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -77,10 +119,16 @@ function Index() {
               onClick={() => setVisible((v) => v + PAGE_SIZE)}
               className="mt-4 h-11 w-full rounded-xl border border-border bg-card px-3 text-sm font-bold active:scale-95"
             >
-              Load more ({mods.length - visible})
+              Load more ({filtered.length - visible})
             </button>
           )}
         </>
+      )}
+
+      {fromCache && (
+        <p className="mt-5 text-center text-xs text-muted-foreground">
+          Showing saved copy — live store data is still loading.
+        </p>
       )}
 
       {mods.length > 0 && !canLoadMore && (
@@ -93,15 +141,48 @@ function Index() {
   );
 }
 
-function EmptyState() {
+function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="glass flex flex-col items-center rounded-2xl py-16 text-center">
-      <PackageOpen className="h-10 w-10 text-[var(--gold-dark)]" />
-      <p className="mt-4 font-display text-lg font-semibold">No mods yet</p>
+      <RefreshCw className="h-10 w-10 text-[var(--gold-dark)]" />
+      <p className="mt-4 font-display text-lg font-semibold">Couldn't load the store</p>
       <p className="mt-1 max-w-xs text-sm text-muted-foreground">
-        Uploaded mods will appear here automatically. Add some from the admin
-        panel in Settings.
+        Check your connection and try again.
       </p>
+      <button
+        onClick={onRetry}
+        className="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-gold px-4 py-2 text-sm font-semibold text-gold-foreground shadow-[var(--shadow-gold)] active:scale-95"
+      >
+        <RefreshCw className="h-4 w-4" /> Try again
+      </button>
+    </div>
+  );
+}
+
+function EmptyState({ hasQuery, onRefine }: { hasQuery: boolean; onRefine?: () => void }) {
+  return (
+    <div className="glass flex flex-col items-center rounded-2xl py-16 text-center">
+      {hasQuery ? (
+        <SearchX className="h-10 w-10 text-[var(--gold-dark)]" />
+      ) : (
+        <PackageOpen className="h-10 w-10 text-[var(--gold-dark)]" />
+      )}
+      <p className="mt-4 font-display text-lg font-semibold">
+        {hasQuery ? "No matches found" : "No mods yet"}
+      </p>
+      <p className="mt-1 max-w-xs text-sm text-muted-foreground">
+        {hasQuery
+          ? "Try a different keyword or clear the search."
+          : "Uploaded mods will appear here automatically. Add some from the admin panel in Settings."}
+      </p>
+      {hasQuery && onRefine && (
+        <button
+          onClick={onRefine}
+          className="mt-4 text-sm font-semibold text-[var(--gold-dark)] underline underline-offset-2"
+        >
+          Refine your search
+        </button>
+      )}
     </div>
   );
 }

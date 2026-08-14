@@ -82,7 +82,6 @@ function SettingsPage() {
         </button>
       </div>
 
-
       <p className="mt-6 text-center text-xs text-muted-foreground">
         AYT R STORE · Premium mods & add-ons
       </p>

@@ -13,13 +13,7 @@ declare global {
  * Renders a Google AdSense responsive display unit.
  * Returns null until a valid publisher ID is set in `ads-config.ts`.
  */
-export function AdSenseUnit({
-  slot,
-  className,
-}: {
-  slot?: string;
-  className?: string;
-}) {
+export function AdSenseUnit({ slot, className }: { slot?: string; className?: string }) {
   const hydrated = useHydrated();
   const pushed = useRef(false);
 

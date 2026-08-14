@@ -36,9 +36,7 @@ export function StoreShell({
               <p className="font-display text-base font-bold tracking-tight">
                 AYT R <span className="text-gradient-gold">STORE</span>
               </p>
-              {title && (
-                <p className="text-xs text-muted-foreground">{title}</p>
-              )}
+              {title && <p className="text-xs text-muted-foreground">{title}</p>}
             </div>
           </Link>
         </div>
