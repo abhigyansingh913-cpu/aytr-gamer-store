@@ -37,9 +37,9 @@ function ConnectPage() {
         <ArrowLeft className="h-4 w-4" /> Back
       </button>
 
-      <div className="glass animate-float-up rounded-2xl p-5">
+      <div className="glass animate-fade-up rounded-2xl p-5">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-gold text-gold-foreground shadow-[var(--shadow-gold)]">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl icon-glass">
             <Sparkles className="h-6 w-6" />
           </span>
           <div>
@@ -50,12 +50,12 @@ function ConnectPage() {
           </div>
         </div>
 
-        <div className="mt-4 flex items-center gap-2 rounded-xl border border-[var(--glass-border)] bg-white/60 p-2">
+        <div className="mt-4 flex items-center gap-2 rounded-xl border border-[var(--glass-border)] bg-white/5 p-2">
           <code className="flex-1 truncate px-2 text-sm font-medium">{mcpUrl || "…"}</code>
           <button
             onClick={copy}
             disabled={!mcpUrl}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-gold px-3 py-2 text-sm font-semibold text-gold-foreground shadow-[var(--shadow-gold)] transition hover:-translate-y-0.5 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-accent px-3 py-2 text-sm font-semibold text-white transition-transform active:scale-95 disabled:opacity-50"
           >
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             {copied ? "Copied" : "Copy"}
@@ -109,7 +109,7 @@ function ConnectPage() {
 
       <div className="glass mt-6 rounded-2xl p-5">
         <div className="mb-4 flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-gold text-gold-foreground shadow-[var(--shadow-gold)]">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl icon-glass">
             <RefreshCw className="h-6 w-6" />
           </span>
           <div>
@@ -158,7 +158,7 @@ function ExtLink({ href, children }: { href: string; children: React.ReactNode }
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="font-semibold text-[var(--gold-dark)] underline underline-offset-2 hover:opacity-80"
+      className="font-semibold text-accent-red underline underline-offset-2 hover:opacity-80"
     >
       {children}
     </a>
@@ -181,12 +181,12 @@ function ClientCard({
       className={
         compact
           ? "rounded-xl border border-[var(--glass-border)] bg-white/50 p-4"
-          : "glass animate-float-up rounded-2xl p-5"
+          : "glass animate-fade-up rounded-2xl p-5"
       }
     >
       <div className="mb-3 flex items-center gap-2">
         {icon && (
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-gold text-gold-foreground">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg icon-glass">
             {icon}
           </span>
         )}

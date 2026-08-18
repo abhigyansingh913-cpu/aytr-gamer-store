@@ -5,8 +5,14 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * AYT R STORE — premium white + golden glassmorphism design system.
- * All colors use oklch. Gold tokens power the glass surfaces and glow.
+ * AYT R STORE — premium BLACK-first design system.
+ * Deep black backgrounds, near-black surfaces, dark glass cards,
+ * white/light-gray type, and a very limited RED accent.
+ *
+ * Performance rules:
+ *  - backdrop blur is capped (max 10px) and used only on small surfaces.
+ *  - No infinite glowing/particle animations.
+ *  - GPU-friendly transitions (transform/opacity only).
  */
 
 @theme inline {
@@ -40,10 +46,9 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
-  --color-gold: var(--gold);
-  --color-gold-light: var(--gold-light);
-  --color-gold-dark: var(--gold-dark);
-  --color-gold-foreground: var(--gold-foreground);
+  --color-accent-red: var(--accent-red);
+  --color-accent-red-dark: var(--accent-red-dark);
+  --color-accent-foreground-on: var(--accent-foreground-on);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
@@ -60,51 +65,56 @@
 }
 
 :root {
-  --radius: 1rem;
-  --background: oklch(0.995 0.004 95);
-  --foreground: oklch(0.22 0.02 70);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.02 70);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.02 70);
-  --primary: oklch(0.77 0.14 85);
-  --primary-foreground: oklch(0.25 0.03 75);
-  --secondary: oklch(0.97 0.02 90);
-  --secondary-foreground: oklch(0.3 0.03 75);
-  --muted: oklch(0.96 0.01 90);
-  --muted-foreground: oklch(0.5 0.03 80);
-  --accent: oklch(0.95 0.05 90);
-  --accent-foreground: oklch(0.3 0.04 75);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.9 0.03 88);
-  --input: oklch(0.92 0.02 88);
-  --ring: oklch(0.77 0.14 85);
+  --radius: 0.9rem;
 
-  --gold: oklch(0.77 0.14 85);
-  --gold-light: oklch(0.88 0.11 92);
-  --gold-dark: oklch(0.62 0.13 78);
-  --gold-foreground: oklch(0.28 0.03 75);
+  /* Deep black base */
+  --background: oklch(0.13 0.004 285);
+  --foreground: oklch(0.96 0 0);
+  --card: oklch(0.165 0.005 285);
+  --card-foreground: oklch(0.96 0 0);
+  --popover: oklch(0.17 0.005 285);
+  --popover-foreground: oklch(0.96 0 0);
+  --primary: var(--accent-red);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.22 0.006 285);
+  --secondary-foreground: oklch(0.92 0 0);
+  --muted: oklch(0.2 0.005 285);
+  --muted-foreground: oklch(0.68 0.01 285);
+  --accent: oklch(0.24 0.006 285);
+  --accent-foreground: oklch(0.94 0 0);
+  --destructive: oklch(0.577 0.245 27);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 0.1);
+  --input: oklch(1 0 0 / 0.12);
+  --ring: var(--accent-red);
 
-  --chart-1: oklch(0.77 0.14 85);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
+  /* Minimal red accent — CTAs, active, errors, notifications, selected */
+  --accent-red: oklch(0.58 0.22 20);
+  --accent-red-dark: oklch(0.48 0.2 20);
+  --accent-foreground-on: oklch(0.98 0 0);
 
-  --glass-gold: color-mix(in oklab, var(--gold) 14%, white 86%);
-  --glass-border: color-mix(in oklab, var(--gold) 40%, white 60%);
-  --shadow-gold: 0 10px 40px -12px color-mix(in oklab, var(--gold) 45%, transparent);
-  --shadow-gold-lg: 0 20px 60px -16px color-mix(in oklab, var(--gold) 55%, transparent);
-  --gradient-gold: linear-gradient(135deg, var(--gold-light), var(--gold) 55%, var(--gold-dark));
+  /* Glass tokens (dark glass — subtle) */
+  --glass-bg: oklch(1 0 0 / 0.06);
+  --glass-bg-strong: oklch(1 0 0 / 0.09);
+  --glass-border: oklch(1 0 0 / 0.1);
+  --glass-blur: 10px;
+  --shadow-soft: 0 10px 30px -12px oklch(0 0 0 / 0.7);
+  --shadow-red: 0 8px 24px -8px color-mix(in oklab, var(--accent-red) 45%, transparent);
+  --gradient-accent: linear-gradient(160deg, oklch(0.66 0.2 22), var(--accent-red) 55%, var(--accent-red-dark));
+
+  --chart-1: var(--accent-red);
+  --chart-2: oklch(0.62 0.03 285);
+  --chart-3: oklch(0.75 0.02 285);
+  --chart-4: oklch(0.5 0.08 20);
+  --chart-5: oklch(0.85 0 0);
+  --sidebar: oklch(0.15 0.004 285);
+  --sidebar-foreground: oklch(0.94 0 0);
+  --sidebar-primary: var(--accent-red);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.23 0.005 285);
+  --sidebar-accent-foreground: oklch(0.94 0 0);
+  --sidebar-border: oklch(1 0 0 / 0.09);
+  --sidebar-ring: var(--accent-red);
 }
 
 @layer base {
@@ -112,95 +122,190 @@
     border-color: var(--color-border);
   }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    background-image:
-      radial-gradient(60rem 40rem at 80% -10%, color-mix(in oklab, var(--gold) 18%, transparent), transparent),
-      radial-gradient(50rem 40rem at -10% 20%, color-mix(in oklab, var(--gold-light) 22%, transparent), transparent);
-    background-attachment: scroll;
+    /* Static, cheap-to-paint background — no animation, no scrolling attachment cost. */
+    background-image: radial-gradient(
+      55rem 35rem at 85% -12%,
+      oklch(0.2 0.05 20 / 0.35),
+      transparent
+    );
+    background-attachment: fixed;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
-  h1, h2, h3, h4, .font-display {
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
     font-family: var(--font-display);
+    letter-spacing: -0.01em;
+  }
+
+  img {
+    -webkit-user-drag: none;
   }
 }
+
+/* ---------- Dark glass utilities ---------- */
 
 @utility glass {
-  background: color-mix(in oklab, white 62%, transparent);
-  backdrop-filter: blur(18px) saturate(150%);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-gold);
+  box-shadow: var(--shadow-soft);
 }
 
-@utility glass-gold {
-  background: linear-gradient(
-    135deg,
-    color-mix(in oklab, var(--gold-light) 30%, white 70%),
-    color-mix(in oklab, var(--gold) 12%, white 88%)
-  );
-  backdrop-filter: blur(18px) saturate(160%);
+@utility glass-strong {
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-gold);
+  box-shadow: var(--shadow-soft);
 }
 
-@utility text-gradient-gold {
-  background: var(--gradient-gold);
+/*
+ * Zero-blur solid surface — used on high-scroll surfaces (admin, grids) and
+ * everywhere a blur would cost FPS. Same visual family, no backdrop-filter.
+ */
+@utility surface {
+  background: var(--card);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Small glass container for major interactive icons. */
+@utility icon-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(6px) saturate(130%);
+  -webkit-backdrop-filter: blur(6px) saturate(130%);
+  border: 1px solid var(--glass-border);
+  color: var(--color-foreground);
+  box-shadow: 0 4px 14px -8px oklch(0 0 0 / 0.6);
+}
+
+@utility bg-gradient-accent {
+  background: var(--gradient-accent);
+}
+
+@utility text-gradient-accent {
+  background: linear-gradient(120deg, oklch(0.99 0 0), oklch(0.82 0.02 285));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-@utility bg-gradient-gold {
-  background: var(--gradient-gold);
+/* ---------- Motion (micro, GPU-friendly) ---------- */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-@keyframes gold-glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--gold) 40%, transparent); }
-  50% { box-shadow: 0 0 32px 4px color-mix(in oklab, var(--gold) 45%, transparent); }
+@keyframes shimmer-slow {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(400%);
+  }
 }
 
-@keyframes float-up {
-  from { opacity: 0; transform: translateY(16px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+.animate-fade-up {
+  animation: fade-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes shimmer {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(250%); }
+.animate-shimmer-slow {
+  animation: shimmer-slow 1.6s ease-in-out infinite;
 }
 
-.animate-float-up { animation: float-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.animate-gold-glow { animation: gold-glow-pulse 2.4s ease-in-out infinite; }
+/* ---------- Accessibility & reduced motion ---------- */
 
-.admin-lite .glass,
-.admin-lite .glass-gold {
-  background: color-mix(in oklab, white 88%, var(--gold) 12%);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Performance helpers ---------- */
+
+/* Admin & dense lists: strip blur/animations entirely for smooth scrolling. */
+.perf-flat .glass,
+.perf-flat .glass-strong {
+  background: var(--card);
   backdrop-filter: none;
-  box-shadow: 0 1px 0 var(--glass-border);
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
 }
 
-.admin-lite > header {
-  position: static;
-}
-
-.admin-lite .animate-float-up,
-.admin-lite .animate-gold-glow {
-  animation: none;
-}
-
-.admin-lite * {
+.perf-flat * {
   transition-duration: 0ms !important;
+  animation-duration: 0.01ms !important;
 }
 
-.admin-lite img {
+.perf-flat img {
   content-visibility: auto;
+  contain-intrinsic-size: auto 220px;
 }
 
-.admin-lite input,
-.admin-lite textarea,
-.admin-lite select,
-.admin-lite button {
-  transform: translateZ(0);
+@media (pointer: coarse) {
+  .perf-flat button,
+  .perf-flat a,
+  .perf-flat input,
+  .perf-flat textarea,
+  .perf-flat select {
+    transform: translateZ(0);
+  }
+}
+
+/* Scrollbar (dark, thin, unobtrusive) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.3 0.01 285) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: oklch(0.3 0.01 285);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Hide horizontal scrollbar on chip rows */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

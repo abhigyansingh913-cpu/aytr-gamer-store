@@ -2,20 +2,28 @@ import { useCallback, useEffect, useState } from "react";
 import { get, onValue, ref } from "firebase/database";
 import { db } from "@/lib/firebase";
 import { cacheMods, loadCachedMods } from "@/lib/offline-cache";
-import type { Mod } from "@/lib/types";
+import { DB_PATHS, MOD_FETCH_LIMIT } from "@/lib/constants";
+import { normalizeCategory, normalizeMod, type Category, type Mod } from "@/lib/types";
 
-function toModList(value: Record<string, Omit<Mod, "id">> | null): Mod[] {
+function toModList(value: Record<string, Record<string, unknown>> | null): Mod[] {
   const list: Mod[] = value
-    ? Object.entries(value).map(([id, data]) => ({
-        id,
-        ...data,
-        screenshots: data.screenshots ?? [],
-      }))
+    ? Object.entries(value)
+        .map(([id, data]) => normalizeMod(id, data))
+        .slice(0, MOD_FETCH_LIMIT)
     : [];
   list.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
   return list;
 }
 
+function toCategoryList(value: Record<string, Record<string, unknown>> | null): Category[] {
+  const list: Category[] = value
+    ? Object.entries(value).map(([id, data]) => normalizeCategory(id, data))
+    : [];
+  list.sort((a, b) => a.order - b.order);
+  return list;
+}
+
+/** Public store hook — only published mods, newest first, cached offline. */
 export function useMods() {
   const [mods, setMods] = useState<Mod[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +36,6 @@ export function useMods() {
     setLoading(true);
     setError(null);
 
-    // Load cached data immediately for offline speed
     loadCachedMods().then((cached) => {
       if (cancelled) return;
       if (cached.length > 0) {
@@ -38,17 +45,17 @@ export function useMods() {
       }
     });
 
-    const modsRef = ref(db, "mods");
+    const modsRef = ref(db, DB_PATHS.mods);
     const unsub = onValue(
       modsRef,
       (snapshot) => {
         if (cancelled) return;
-        const value = snapshot.val() as Record<string, Omit<Mod, "id">> | null;
-        const list = toModList(value);
-        setMods(list);
+        const list = toModList(snapshot.val() as Record<string, Record<string, unknown>> | null);
+        const published = list.filter((m) => m.published);
+        setMods(published);
         setFromCache(false);
         setLoading(false);
-        cacheMods(list);
+        void cacheMods(published);
       },
       (err) => {
         if (cancelled) return;
@@ -63,10 +70,12 @@ export function useMods() {
   }, [attempt]);
 
   const retry = useCallback(() => setAttempt((a) => a + 1), []);
+  const refresh = useCallback(() => setAttempt((a) => a + 1), []);
 
-  return { mods, loading, error, fromCache, retry };
+  return { mods, loading, error, fromCache, retry, refresh };
 }
 
+/** Admin store hook — ALL mods including unpublished. */
 export function useAdminMods() {
   const [mods, setMods] = useState<Mod[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,13 +85,11 @@ export function useAdminMods() {
     setLoading(true);
     setError(null);
     try {
-      const snapshot = await get(ref(db, "mods"));
-      const value = snapshot.val() as Record<string, Omit<Mod, "id">> | null;
-      const list = toModList(value);
+      const snapshot = await get(ref(db, DB_PATHS.mods));
+      const list = toModList(snapshot.val() as Record<string, Record<string, unknown>> | null);
       setMods(list);
-      cacheMods(list);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load mods");
+      setError(err instanceof Error ? err.message : "Failed to load items");
       const cached = await loadCachedMods();
       if (cached.length > 0) setMods(cached);
     } finally {
@@ -92,7 +99,6 @@ export function useAdminMods() {
 
   useEffect(() => {
     refresh();
-
     if (typeof window === "undefined") return;
     window.addEventListener("aytr-admin-mods-refresh", refresh);
     return () => window.removeEventListener("aytr-admin-mods-refresh", refresh);
@@ -101,12 +107,8 @@ export function useAdminMods() {
   return { mods, loading, error, refresh };
 }
 
+/** Single mod detail (live). */
 export function useMod(id: string) {
-  const { mods, loading, error } = useMods();
-  return { mod: mods.find((m) => m.id === id) ?? null, loading, error };
-}
-
-export function useModById(id: string) {
   const [mod, setMod] = useState<Mod | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -125,19 +127,14 @@ export function useModById(id: string) {
       }
     });
 
-    const modRef = ref(db, `mods/${id}`);
+    const modRef = ref(db, `${DB_PATHS.mods}/${id}`);
     const unsub = onValue(
       modRef,
       (snapshot) => {
         if (cancelled) return;
-        const value = snapshot.val() as Omit<Mod, "id"> | null;
+        const value = snapshot.val() as Record<string, unknown> | null;
         if (value) {
-          const next: Mod = {
-            id,
-            ...value,
-            screenshots: value.screenshots ?? [],
-          };
-          setMod(next);
+          setMod(normalizeMod(id, value));
         } else {
           setMod(null);
         }
@@ -156,4 +153,60 @@ export function useModById(id: string) {
   }, [id]);
 
   return { mod, loading, error };
+}
+
+/** Managed categories, merged with fallback defaults when none exist. */
+export function useCategories() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const snapshot = await get(ref(db, DB_PATHS.categories));
+      const list = toCategoryList(snapshot.val() as Record<string, Record<string, unknown>> | null);
+      const enabled = list.filter((c) => c.enabled);
+      setCategories(enabled);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load categories");
+      setCategories([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  return { categories, loading, error, refresh };
+}
+
+/** Admin variant — includes disabled categories. */
+export function useAdminCategories() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const snapshot = await get(ref(db, DB_PATHS.categories));
+      const list = toCategoryList(snapshot.val() as Record<string, Record<string, unknown>> | null);
+      setCategories(list);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load categories");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  return { categories, loading, error, refresh };
 }

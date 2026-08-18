@@ -1,7 +1,7 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-import { CATEGORIES, type Mod } from "@/lib/types";
-import { fetchNode, recordToArray } from "../firebase";
+import { normalizeMod } from "@/lib/types";
+import { fetchNode } from "../firebase";
 
 export default defineTool({
   name: "list_mods",
@@ -9,7 +9,7 @@ export default defineTool({
   description:
     "List published mods from the Aytr Gamer Store. Optionally filter by category and limit the number of results. Returns newest first.",
   inputSchema: {
-    category: z.enum(CATEGORIES).optional().describe("Optional category filter."),
+    category: z.string().optional().describe("Optional category filter (exact name)."),
     limit: z
       .number()
       .int()
@@ -20,27 +20,30 @@ export default defineTool({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
   handler: async ({ category, limit }) => {
-    const raw = await fetchNode<Record<string, Omit<Mod, "id">>>("mods");
-    let mods = recordToArray(raw) as Mod[];
-    if (category) mods = mods.filter((m) => m.category === category);
-    mods.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-    const capped = mods.slice(0, limit ?? 20);
+    const raw = await fetchNode<Record<string, Record<string, unknown>>>("mods");
+    const mods = Object.entries(raw ?? {}).map(([id, data]) => normalizeMod(id, data));
+    const published = mods.filter((m) => m.published);
+    let filtered = published;
+    if (category) filtered = published.filter((m) => m.category === category);
+    filtered.sort((a, b) => b.createdAt - a.createdAt);
+    const capped = filtered.slice(0, limit ?? 20);
     const summary = capped.map((m) => ({
       id: m.id,
       title: m.title,
       category: m.category,
       version: m.version,
       size: m.size,
+      downloads: m.downloads ?? 0,
       imageUrl: m.imageUrl,
     }));
     return {
       content: [
         {
           type: "text",
-          text: `Found ${mods.length} mod(s); returning ${capped.length}.\n${JSON.stringify(summary, null, 2)}`,
+          text: `Found ${filtered.length} mod(s); returning ${capped.length}.\n${JSON.stringify(summary, null, 2)}`,
         },
       ],
-      structuredContent: { total: mods.length, mods: summary },
+      structuredContent: { total: filtered.length, mods: summary },
     };
   },
 });

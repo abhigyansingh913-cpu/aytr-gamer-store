@@ -28,7 +28,7 @@ export function AdBanner({ className }: { className?: string }) {
 
   const inner = (
     <div className="relative overflow-hidden rounded-2xl">
-      <span className="glass absolute left-2 top-2 z-10 rounded-full px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+      <span className="icon-glass absolute left-2 top-2 z-10 rounded-full px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
         Ad
       </span>
       <img

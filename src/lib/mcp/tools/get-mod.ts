@@ -1,6 +1,6 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-import type { Mod } from "@/lib/types";
+import { normalizeMod, type Mod } from "@/lib/types";
 import { fetchNode } from "../firebase";
 
 export default defineTool({
@@ -13,14 +13,14 @@ export default defineTool({
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
   handler: async ({ id }) => {
-    const mod = await fetchNode<Omit<Mod, "id">>(`mods/${encodeURIComponent(id)}`);
-    if (!mod) {
+    const raw = await fetchNode<Record<string, unknown>>(`mods/${encodeURIComponent(id)}`);
+    if (!raw) {
       return {
         content: [{ type: "text", text: `No mod found with id "${id}".` }],
         isError: true,
       };
     }
-    const full = { ...mod, id } as Mod;
+    const full: Mod = normalizeMod(id, raw);
     return {
       content: [{ type: "text", text: JSON.stringify(full, null, 2) }],
       structuredContent: { mod: full },
